@@ -8,66 +8,32 @@
 ## 1. Project Context & Objectives
 
 - **Project Name**: VyapaarPilot
-- **Tagline**: AI-powered business growth assistant for small merchants.
-- **Build Mode**: Hackathon initialization scaffold. Complete MVP business logic and synthetic dataset will be populated during the official build window.
+- **Tagline**: Multimodal AI-powered business growth assistant for small merchants.
+- **Multimodal Support**: Voice conversations, text chat, and realtime WebSocket streaming sharing a **single agent brain**.
 - **Core Loop**: `SIGNAL` -> `EXPLANATION` -> `ACTION` -> `EXPERIMENT` -> `OUTCOME`
 - **Primary MVP Scenario**:
   - **Signal**: Tuesday 4 PM–7 PM sales are ~24% below historical baseline (4 weeks observed).
   - **Explanation**: AI explains the pattern in simple Hindi/English/Hinglish.
-  - **Action**: Proposes a targeted 3-hour promotion.
-  - **Experiment**: Runs a synthetic promotion experiment.
+  - **Action**: Proposes a targeted 3-hour promotion requiring merchant confirmation.
+  - **Experiment**: Runs a synthetic promotion experiment upon merchant approval.
   - **Outcome**: Baseline ₹13,800 vs. Experiment ₹17,250 (**+25% Uplift**).
   - **Demo Notice**: Results must be explicitly labelled as synthetic demo data.
 
 ---
 
-## 2. Team & Ownership
+## 2. Key Architecture Decisions
 
-- **Sundram Gupta**: Flutter frontend + overall product integration.
-- **Sara Ali Ahmad**: Synthetic dataset + database/data layer.
-- **Raghvendra Pandey**: FastAPI backend + analytics + AI integration.
-
----
-
-## 3. Strict Architectural Guardrails & Rules
-
-1. **Monorepo Structure**: All code MUST remain inside this single repository under `frontend/`, `backend/`, `database/`, `data/`, and `docs/`.
-2. **Database Isolation**: Flutter MUST NEVER connect directly to PostgreSQL or SQLite.
-3. **AI Isolation**: Flutter MUST NEVER call Google Gemini API directly. Flutter only communicates with FastAPI via REST/JSON.
-4. **LLM DB Access Prohibited**: Google Gemini API MUST NEVER have direct access to PostgreSQL. Python calculates numbers and sends a sanitized JSON context to Gemini.
-5. **No Invented Financial Metrics**: Gemini must NEVER independently compute financial metrics or guarantee revenue. Python Pandas/NumPy is the sole source of numerical truth.
-6. **No Real PII**: Never store real names, addresses, phone numbers, or UPI IDs. Synthetic customer IDs only (`CUST_xxx`).
-7. **No Real Paytm Assets**: Visual style is inspired by modern Indian fintech usability (Deep Navy `#123B66`, Light Blue `#E8F3FF`, White surface `#FFFFFF`), but MUST NOT copy logos, assets, or exact screens.
+1. **Single Agent Brain**: `POST /api/ai/ask`, `POST /api/ai/voice`, and `WS /api/ai/realtime/{merchant_id}` all route through `AgentOrchestrator`. No duplicated business logic.
+2. **Provider Independence**: AI, STT, and TTS layers implement abstract base classes (`AIProvider`, `SpeechToTextProvider`, `TextToSpeechProvider`) and are configurable via `.env`.
+3. **Write Actions Require Confirmation**: The AI cannot unilaterally mutate the database. Write tools return actions with `requires_confirmation: true`. Flutter renders confirmation UI and executes via `POST /api/ai/action/execute`.
+4. **Deterministic Analytics Truth**: MySQL / SQLAlchemy queries and Pandas aggregations are the sole numerical truth. LLMs never directly query the database.
+5. **Flutter-First Error Contract**: All errors follow the typed `{error: {code, message, retryable, details}}` structure.
 
 ---
 
-## 4. Key Paths & Files
+## 3. Test Suite
 
-- **Frontend**: `frontend/lib/`
-  - Constants & Theme: [constants.dart](file:///Users/sundramgupta/development/personal_project/VyapaarPilot/frontend/lib/core/constants/app_colors.dart)
-  - Layout & Responsive: [responsive.dart](file:///Users/sundramgupta/development/personal_project/VyapaarPilot/frontend/lib/core/responsive/responsive_layout.dart)
-  - Screens: [features/](file:///Users/sundramgupta/development/personal_project/VyapaarPilot/frontend/lib/features/)
-- **Backend**: `backend/app/`
-  - Entrypoint: [main.py](file:///Users/sundramgupta/development/personal_project/VyapaarPilot/backend/app/main.py)
-  - API Routers: [api/](file:///Users/sundramgupta/development/personal_project/VyapaarPilot/backend/app/api/)
-  - Analytics: [analytics/](file:///Users/sundramgupta/development/personal_project/VyapaarPilot/backend/app/analytics/)
-  - AI Service: [ai/](file:///Users/sundramgupta/development/personal_project/VyapaarPilot/backend/app/ai/)
-- **Database**: [schema.sql](file:///Users/sundramgupta/development/personal_project/VyapaarPilot/database/schema.sql)
-- **Data Generator**: [generator_spec.md](file:///Users/sundramgupta/development/personal_project/VyapaarPilot/data/generator_spec.md)
-
----
-
-## 5. Environment Variables
-
-- `DATABASE_URL`: PostgreSQL connection string (or SQLite fallback `sqlite:///./vyapaarpilot.db`).
-- `GEMINI_API_KEY`: API key for Google Gemini model calls.
-- `API_HOST`: Defaults to `0.0.0.0`.
-- `API_PORT`: Defaults to `8000`.
-
----
-
-## 6. Execution Commands
-
-- **Backend**: `cd backend && uvicorn app.main:app --reload --host 0.0.0.0 --port 8000`
-- **Frontend**: `cd frontend && flutter run -d chrome`
-- **Database setup**: `psql -U vyapaar_user -d vyapaarpilot -f database/schema.sql` (or SQLite equivalent).
+- **Framework**: `pytest`
+- **Total Test Cases**: 32 passing tests
+- **Coverage**: Health, Merchants, Trends, Customers, Opportunities, Recommendations, Experiments, Text AI, Multipart Voice, Capabilities, Action Confirmation & Execution, and WebSocket Realtime.
+- **Execution**: `pytest -v`

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import Column, String, Float, Integer, DateTime, ForeignKey, Index
 from sqlalchemy.orm import relationship
 from app.core.database import Base
@@ -18,7 +18,7 @@ class Opportunity(Base):
     change_percent = Column(Float, nullable=False)
     weeks_observed = Column(Integer, default=4)
     confidence = Column(Float, default=0.85)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     merchant = relationship("Merchant", back_populates="opportunities")
     experiments = relationship("Experiment", back_populates="opportunity", cascade="all, delete-orphan")

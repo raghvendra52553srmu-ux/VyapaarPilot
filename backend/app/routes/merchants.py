@@ -10,7 +10,25 @@ from app.services.analytics_service import analytics_service
 from app.services.customer_service import customer_service
 from app.services.opportunity_service import opportunity_service
 
+from app.models.merchant import Merchant
+
 router = APIRouter(prefix="/merchants", tags=["Merchants"])
+
+@router.get("/", response_model=List[dict])
+def list_merchants(db: Session = Depends(get_db)):
+    """
+    List all registered merchants for easy selection in Flutter UI.
+    """
+    merchants = db.query(Merchant).all()
+    return [
+        {
+            "merchant_id": m.merchant_id,
+            "name": m.name,
+            "business_type": m.business_type,
+            "city": m.city
+        }
+        for m in merchants
+    ]
 
 @router.get("/{merchant_id}/summary", response_model=MerchantSummaryResponse)
 def get_merchant_summary(merchant_id: str, db: Session = Depends(get_db)):

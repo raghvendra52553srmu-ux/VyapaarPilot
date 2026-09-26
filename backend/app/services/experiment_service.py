@@ -4,7 +4,7 @@ Handles experiment creation, baseline vs experiment comparison, and uplift calcu
 """
 
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Any
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
@@ -45,7 +45,7 @@ class ExperimentService:
         uplift = calculate_uplift(baseline, exp_amount)
 
         exp_id = f"EXP_{uuid.uuid4().hex[:6].upper()}"
-        start_time = datetime.utcnow()
+        start_time = datetime.now(timezone.utc)
         completed_time = start_time + timedelta(hours=3)
 
         exp = Experiment(

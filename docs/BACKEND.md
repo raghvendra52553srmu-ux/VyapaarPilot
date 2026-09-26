@@ -1,193 +1,52 @@
-# VyapaarPilot — Backend Specification
+# VyapaarPilot — Backend Specification (Multimodal Edition)
 
-Owner:
-
-Raghvendra Pandey
-
-Stack:
-
-Python
-FastAPI
-PostgreSQL
-Pandas
-NumPy
-Gemini API
+Owner: Raghvendra Pandey  
+Stack: Python 3.12, FastAPI, MySQL, SQLAlchemy, PyMySQL, Pandas, NumPy, Google GenAI SDK
 
 ---
 
-# 1. Backend Responsibilities
+## 1. Backend Responsibilities
 
 The backend owns:
-
-- REST API
-- database access
-- analytics
-- opportunity detection
-- experiment engine
-- AI orchestration
-- validation
-
----
-
-# 2. Folder Structure
-
-backend/app/
-
-api/
-core/
-db/
-models/
-schemas/
-services/
-analytics/
-ai/
-main.py
+- REST & WebSocket APIs
+- Multimodal Voice Subsystem (STT, TTS, Validation)
+- Database persistence (MySQL `vyapaarpilot1`)
+- Deterministic analytics & baselines
+- Opportunity detection & experiment engine
+- Provider-independent AI layer & agent orchestration
+- Structured action confirmation & execution
 
 ---
 
-# 3. API Endpoints
+## 2. API Endpoints
 
-GET /api/merchants/{merchant_id}/summary
+### Health & Discovery
+- `GET /api/health`: Health & MySQL connectivity check.
+- `GET /api/capabilities`: Assistant capabilities, languages, audio formats, tools.
 
-GET /api/merchants/{merchant_id}/trends
+### Core Business & Analytics
+- `GET /api/merchants/{merchant_id}/summary`: Top-level summary (today, week, month sales, ATV, success rate).
+- `GET /api/merchants/{merchant_id}/trends`: Daily, weekly, monthly trends & Tuesday 16:00–19:00 hourly baseline.
+- `GET /api/merchants/{merchant_id}/customers/analytics`: Anonymous customer loyalty, churn, frequency & spend.
+- `GET /api/merchants/{merchant_id}/opportunities`: Active underperformance opportunities.
+- `GET /api/opportunities/{opportunity_id}`: Single opportunity evidence.
+- `POST /api/opportunities/{opportunity_id}/recommend`: Structured experimental recommendations.
+- `POST /api/experiments`: Create promotion experiment and compute uplift.
+- `GET /api/experiments/{experiment_id}`: Retrieve experiment result and uplift.
 
-GET /api/merchants/{merchant_id}/opportunities
-
-GET /api/opportunities/{opportunity_id}
-
-POST /api/opportunities/{opportunity_id}/recommend
-
-POST /api/experiments
-
-GET /api/experiments/{experiment_id}
-
-POST /api/ai/ask
-
----
-
-# 4. Summary Response
-
-{
-  "today_sales": 18420,
-  "sales_change_percent": -12,
-  "transaction_count": 73,
-  "average_transaction": 252
-}
+### Multimodal AI & Voice
+- `POST /api/ai/ask`: Unified text conversation endpoint.
+- `POST /api/ai/voice`: Multipart voice turn endpoint (audio upload -> STT -> Agent -> TTS).
+- `GET /api/ai/voice/audio/{audio_id}`: Binary streaming of synthesized WAV audio.
+- `POST /api/ai/action/execute`: Safe execution of confirmed merchant actions.
+- `WS /api/ai/realtime/{merchant_id}`: WebSocket streaming protocol for text/voice.
 
 ---
 
-# 5. Opportunity Response
+## 3. Strict Safety & PII Rules
 
-{
-  "id": "OP001",
-  "type": "slow_period",
-  "title": "Tuesday evening slowdown",
-  "day": "Tuesday",
-  "period": "16:00-19:00",
-  "decline_percent": 24,
-  "baseline": 13800,
-  "current": 10488,
-  "weeks_observed": 4
-}
-
----
-
-# 6. Analytics
-
-Required metrics:
-
-- daily sales
-- hourly sales
-- day-of-week sales
-- transaction count
-- average transaction value
-- historical baseline
-- percentage change
-
----
-
-# 7. Opportunity Detection
-
-MVP rule:
-
-A period becomes an opportunity when:
-
-- performance is meaningfully below baseline
-- decline is persistent
-- pattern occurs across multiple weeks
-
-Example:
-
-Tuesday 16:00–19:00
-
-Week 1: below baseline
-Week 2: below baseline
-Week 3: below baseline
-Week 4: below baseline
-
-Create opportunity.
-
----
-
-# 8. AI
-
-The LLM receives structured metrics.
-
-It must:
-
-- explain the signal
-- provide one actionable recommendation
-- use simple merchant-friendly language
-- support English/Hindi/Hinglish
-- never invent metrics
-- never guarantee revenue
-- never give regulated financial advice
-
-The LLM does not calculate core financial metrics.
-
----
-
-# 9. Experiment
-
-Calculate:
-
-uplift =
-(experiment_amount - baseline_amount)
-/
-baseline_amount
-* 100
-
-Example:
-
-baseline = 13800
-experiment = 17250
-
-uplift = 25%
-
----
-
-# 10. LLM Failure Handling
-
-If Gemini fails:
-
-Use deterministic recommendation templates.
-
-Example:
-
-"Tuesday evening sales have been consistently below your usual level. Consider testing a limited promotion during this period."
-
----
-
-# 11. Environment Variables
-
-Backend must read secrets from environment.
-
-Required:
-
-DATABASE_URL=
-GEMINI_API_KEY=
-CORS_ORIGINS=
-
-Never commit actual values.
-
-Use .env.example.
+- No customer PII (anonymous synthetic IDs only).
+- No direct database access from LLM.
+- No invented financial figures.
+- No regulated financial or credit advice.
+- Write actions require explicit merchant confirmation.

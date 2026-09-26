@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends
+from typing import List
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -7,6 +8,20 @@ from app.services.opportunity_service import opportunity_service
 from app.services.recommendation_service import recommendation_service
 
 router = APIRouter(prefix="/opportunities", tags=["Opportunities"])
+
+@router.get("/", response_model=List[OpportunityResponse])
+def list_opportunities(merchant_id: str = Query(..., description="Merchant ID"), db: Session = Depends(get_db)):
+    """
+    Detect and list active opportunities for a merchant.
+    """
+    return opportunity_service.detect_opportunities(db=db, merchant_id=merchant_id)
+
+@router.get("/detect", response_model=List[OpportunityResponse])
+def detect_opportunities_endpoint(merchant_id: str = Query(..., description="Merchant ID"), db: Session = Depends(get_db)):
+    """
+    Explicitly trigger detection of opportunities for a merchant.
+    """
+    return opportunity_service.detect_opportunities(db=db, merchant_id=merchant_id)
 
 @router.get("/{opportunity_id}", response_model=OpportunityResponse)
 def get_opportunity(opportunity_id: str, db: Session = Depends(get_db)):
