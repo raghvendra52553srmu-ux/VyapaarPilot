@@ -687,7 +687,23 @@ class HttpApiService implements ApiService {
   }) async {
     if (dataMode == DataMode.mock) return _fallback.sendVoice(merchantId, audioBytes, language: language, conversationId: conversationId, mimeType: mimeType, mockTranscript: mockTranscript);
     try {
-      final validWavBytes = _ensureWav(audioBytes);
+      final List<int> uploadBytes;
+      final String filename;
+      final cleanMime = mimeType.split(';').first.trim().toLowerCase();
+      if (cleanMime.contains('webm')) {
+        uploadBytes = audioBytes;
+        filename = 'voice_input.webm';
+      } else if (cleanMime.contains('mp4') || cleanMime.contains('m4a')) {
+        uploadBytes = audioBytes;
+        filename = 'voice_input.m4a';
+      } else if (cleanMime.contains('mpeg') || cleanMime.contains('mp3')) {
+        uploadBytes = audioBytes;
+        filename = 'voice_input.mp3';
+      } else {
+        uploadBytes = _ensureWav(audioBytes);
+        filename = 'voice_input.wav';
+      }
+
       final request =
           http.MultipartRequest('POST', Uri.parse(ApiEndpoints.aiVoice))
             ..fields['merchant_id'] = merchantId
@@ -701,8 +717,8 @@ class HttpApiService implements ApiService {
       request.files.add(
         http.MultipartFile.fromBytes(
           'audio',
-          validWavBytes,
-          filename: 'voice_input.wav',
+          uploadBytes,
+          filename: filename,
         ),
       );
 

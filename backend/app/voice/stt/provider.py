@@ -167,6 +167,7 @@ class GroqSTTProvider(SpeechToTextProvider):
             raw_text = res_data.get("text", "").strip()
             clean_txt = normalize_transcript(raw_text)
             lang = detect_language_from_text(clean_txt)
+            logger.info(f"🎙️ Groq Whisper STT transcribed ({len(audio_bytes)} bytes): '{clean_txt}' (lang={lang})")
 
             return TranscriptionResult(
                 transcript=clean_txt,
@@ -256,8 +257,6 @@ class AssemblyAISTTProvider(SpeechToTextProvider):
                             raise RuntimeError(error_msg)
 
             clean_txt = normalize_transcript(raw_text)
-            if not clean_txt:
-                clean_txt = "Bhai aaj meri sales kaisi rahi?"
             final_lang = detect_language_from_text(clean_txt) or detected_lang
 
             return TranscriptionResult(
@@ -277,21 +276,27 @@ class AssemblyAISTTProvider(SpeechToTextProvider):
             raise
 
 def get_stt_provider() -> SpeechToTextProvider:
-    provider_name = getattr(settings, "STT_PROVIDER", "groq").lower()
-
-    if (provider_name in ["groq", "whisper"] or not settings.ASSEMBLYAI_API_KEY) and settings.GROQ_API_KEY:
+    """
+    Returns the Speech-to-Text provider.
+    Groq Whisper (whisper-large-v3-turbo) is the primary high-speed engine (<400ms latency).
+    Falls back to AssemblyAI or Gemini if configured.
+    """
+    # 1. Primary: Groq Whisper
+    if settings.GROQ_API_KEY:
         try:
             return GroqSTTProvider()
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Failed to initialize GroqSTTProvider: {e}")
 
-    if (provider_name == "assemblyai" or not settings.GROQ_API_KEY) and settings.ASSEMBLYAI_API_KEY:
+    # 2. Secondary: AssemblyAI
+    if settings.ASSEMBLYAI_API_KEY:
         try:
             return AssemblyAISTTProvider()
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Failed to initialize AssemblyAISTTProvider: {e}")
 
-    if provider_name == "gemini" and settings.GEMINI_API_KEY:
+    # 3. Tertiary: Gemini
+    if settings.GEMINI_API_KEY:
         try:
             return GeminiSTTProvider()
         except Exception:

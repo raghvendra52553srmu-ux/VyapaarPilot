@@ -36,6 +36,7 @@ class _AssistantScreenState extends State<AssistantScreen> {
   Timer? _stateTimer;
   Timer? _autoListenTimer;
   Timer? _navigationTimer;
+  String? _capturedVoiceTranscript;
 
   final List<ChatMessage> _messages = [];
 
@@ -236,6 +237,15 @@ class _AssistantScreenState extends State<AssistantScreen> {
     if (_currentState == AssistantState.listening) {
       _autoListenTimer?.cancel();
       WebAudioHelper.stopListening();
+
+      // If speech recognition captured actual speech from user, submit directly!
+      final captured = _capturedVoiceTranscript?.trim();
+      _capturedVoiceTranscript = null;
+      if (captured != null && captured.isNotEmpty) {
+        _submitMessage(captured);
+        return;
+      }
+
       // Transition from Listening to Transcribing
       setState(() {
         _currentState = AssistantState.transcribing;
@@ -251,8 +261,24 @@ class _AssistantScreenState extends State<AssistantScreen> {
 
         if (!mounted) return;
 
-        final recognizedText =
-            voiceResp.transcript ?? 'Meri sales mein kya opportunity hai?';
+        final recognizedText = voiceResp.transcript?.trim();
+
+        // If no speech was detected, NEVER substitute fake canned text!
+        if (recognizedText == null || recognizedText.isEmpty) {
+          setState(() {
+            _currentState = AssistantState.idle;
+            _messages.add(
+              ChatMessage(
+                id: 'voice_empty_${DateTime.now().millisecondsSinceEpoch}',
+                text: 'Aapki aawaz theek se sunai nahi di. Kripya microphone ke paas aakar saaf aawaz mein dobara bolein.',
+                isUser: false,
+                timestamp: DateTime.now(),
+              ),
+            );
+          });
+          _scrollToBottom();
+          return;
+        }
 
         // Add transcribed user speech
         setState(() {
@@ -353,6 +379,7 @@ class _AssistantScreenState extends State<AssistantScreen> {
       }
     } else {
       // Start Listening state
+      _capturedVoiceTranscript = null;
       setState(() {
         _currentState = AssistantState.listening;
       });
@@ -361,11 +388,10 @@ class _AssistantScreenState extends State<AssistantScreen> {
         WebAudioHelper.startListening(
           language: _selectedLanguage,
           onResult: (transcript) {
-            if (transcript.trim().isNotEmpty && mounted) {
-              _submitMessage(transcript);
+            if (transcript.trim().isNotEmpty) {
+              _capturedVoiceTranscript = transcript;
             }
           },
-
           onError: () {
             if (mounted && _currentState == AssistantState.listening) {
               _toggleMic();
@@ -379,9 +405,9 @@ class _AssistantScreenState extends State<AssistantScreen> {
         );
       }
 
-      // Auto-commit voice turn after 3 seconds if not manually stopped
+      // Auto-commit voice turn after 10 seconds if not manually stopped
       _autoListenTimer?.cancel();
-      _autoListenTimer = Timer(const Duration(milliseconds: 3000), () {
+      _autoListenTimer = Timer(const Duration(seconds: 10), () {
         if (mounted && _currentState == AssistantState.listening) {
           _toggleMic();
         }

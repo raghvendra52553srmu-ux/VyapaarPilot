@@ -48,6 +48,7 @@ class VoiceService:
             }
 
         # 2. Transcribe Audio (STT)
+        logger.info(f"🎤 Voice turn received: {len(audio_bytes)} bytes, MIME='{mime_type}', hint='{language}', merchant={merchant_id}")
         stt_provider = get_stt_provider()
         try:
             stt_result = await stt_provider.transcribe(
@@ -66,11 +67,62 @@ class VoiceService:
                 }
             }
 
-        transcript = stt_result.transcript
+        transcript = (stt_result.transcript or "").strip()
         detected_lang = stt_result.detected_language or language or "hi"
+        effective_lang = language or detected_lang or "hinglish"
+
+        # If user audio was silence/inaudible, do NOT call LLM with fake text
+        if not transcript:
+            logger.warning(f"Voice turn produced empty transcript from {len(audio_bytes)} bytes audio.")
+            no_speech_text = (
+                "Aapki aawaz theek se sunai nahi di. Kripya microphone ke paas aakar dobara bolein."
+                if "hi" in effective_lang.lower() or "hing" in effective_lang.lower()
+                else "I couldn't hear any speech clearly. Please speak into your microphone and try again."
+            )
+            empty_audio_info = None
+            if response_mode in ("audio", "both"):
+                try:
+                    tts_provider = get_tts_provider()
+                    synth_res = await tts_provider.synthesize(text=no_speech_text, language=effective_lang)
+                    empty_audio_info = AudioMeta(
+                        audio_available=True,
+                        audio_url=f"/api/ai/voice/audio/{synth_res.audio_id}",
+                        audio_id=synth_res.audio_id,
+                        mime_type=synth_res.mime_type,
+                        duration_sec=synth_res.duration_sec,
+                        provider=synth_res.provider
+                    ).model_dump()
+                except Exception as tts_err:
+                    logger.warning(f"TTS for empty voice warning failed: {tts_err}")
+
+            return {
+                "conversation_id": conversation_id,
+                "message_id": f"msg_empty_{merchant_id}",
+                "input": {
+                    "type": "voice",
+                    "transcript": "",
+                    "detected_language": effective_lang
+                },
+                "intent": "CLARIFICATION",
+                "confidence": 1.0,
+                "response": {
+                    "text": no_speech_text,
+                    "language": effective_lang,
+                    "suggestions": [
+                        "Aaj ki sales kaisi rahi?",
+                        "Meri sales mein kya opportunity hai?",
+                        "Stock kab reorder karna hai?"
+                    ]
+                },
+                "audio": empty_audio_info,
+                "data": {},
+                "actions": [],
+                "warnings": []
+            }
+
+        logger.info(f"🗣️ User spoken input transcribed: '{transcript}' (lang: {effective_lang})")
 
         # 3. Call SAME Agent Orchestrator as text conversations
-        effective_lang = language or detected_lang or "hinglish"
         agent_res = await agent_orchestrator.handle_conversation_turn(
             db=db,
             merchant_id=merchant_id,
