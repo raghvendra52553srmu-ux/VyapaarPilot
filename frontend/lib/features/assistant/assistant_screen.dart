@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/routing/app_router.dart';
+import '../../core/utils/currency_formatter.dart';
 import '../../services/api/api_service.dart';
 import '../../shared/widgets/app_scaffold.dart';
 import 'models/chat_message.dart';
@@ -354,16 +355,22 @@ class _AssistantScreenState extends State<AssistantScreen> {
     });
 
     try {
-      // Call createExperiment exactly once
-      await _apiService.createExperiment('OP001', 'M001');
+      final oppId = proposal.arguments['opportunity_id']?.toString() ?? 'OP001';
+      final merchId = proposal.arguments['merchant_id']?.toString() ?? 'M001';
+      final expResult = await _apiService.createExperiment(oppId, merchId);
 
       if (!mounted) return;
 
       setState(() {
+        final baselineStr = CurrencyFormatter.formatRupee(expResult.baseline);
+        final resultStr = CurrencyFormatter.formatRupee(expResult.result);
+        final upliftStr = expResult.upliftPercent >= 0
+            ? '+${expResult.upliftPercent.toStringAsFixed(0)}%'
+            : '${expResult.upliftPercent.toStringAsFixed(0)}%';
         _messages.add(
           ChatMessage(
             id: 'exp_success_${DateTime.now().millisecondsSinceEpoch}',
-            text: 'Experiment created ✓\nBaseline: ₹13,800 → Result: ₹17,250 (+25% Uplift)\nSynthetic demo simulation.',
+            text: 'Experiment created ✓\nBaseline: $baselineStr → Result: $resultStr ($upliftStr Uplift)\n${expResult.isSynthetic ? "Synthetic demo simulation." : ""}',
             isUser: false,
             timestamp: DateTime.now(),
           ),

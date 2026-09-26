@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../core/utils/currency_formatter.dart';
 import '../../../models/opportunity.dart';
 
 /// Evidence card presenting concrete empirical observations in simple, accessible language.
@@ -15,10 +16,10 @@ class OpportunityEvidenceCard extends StatelessWidget {
     final evidenceItems = opportunity.evidence.isNotEmpty
         ? opportunity.evidence
         : [
-            '${opportunity.weeksObserved} consecutive Tuesdays',
+            '${opportunity.weeksObserved} consecutive ${opportunity.day}s',
             'Same ${opportunity.period} period',
-            'Normal baseline: ₹13,800',
-            'Recent average: ₹10,488',
+            'Normal baseline: ${CurrencyFormatter.formatRupee(opportunity.baseline)}',
+            'Recent average: ${CurrencyFormatter.formatRupee(opportunity.current)}',
           ];
 
     return Card(

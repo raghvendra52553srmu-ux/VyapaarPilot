@@ -9,6 +9,7 @@ import '../../models/opportunity.dart';
 import '../../repositories/experiment_repository.dart';
 import '../../services/api/api_service.dart';
 import '../../shared/widgets/app_scaffold.dart';
+import '../../shared/widgets/loading_state.dart';
 import '../../shared/widgets/primary_button.dart';
 import '../../shared/widgets/status_badge.dart';
 
@@ -37,23 +38,26 @@ class ExperimentScreen extends StatefulWidget {
 
 class _ExperimentScreenState extends State<ExperimentScreen> {
   late final ExperimentRepository _repository;
+  late final ApiService _apiService;
   Opportunity? _opportunity;
   ExperimentExecutionState _executionState = ExperimentExecutionState.idle;
   String? _errorMessage;
   bool _isExecuting = false;
+  bool _isLoadingOpportunity = false;
 
   @override
   void initState() {
     super.initState();
     _repository = widget.repository ?? DefaultExperimentRepository();
+    _apiService = widget.apiService ?? HttpApiService();
 
     if (widget.opportunity != null) {
       _opportunity = widget.opportunity;
     } else if (widget.opportunityId == 'invalid' ||
         widget.opportunityId == 'empty') {
       _executionState = ExperimentExecutionState.invalidOpportunity;
-    } else {
-      // Default fallback opportunity for M001
+    } else if (HttpApiService.isMockMode) {
+      // Default fallback opportunity for M001 in mock mode
       _opportunity = const Opportunity(
         opportunityId: 'OP001',
         merchantId: 'M001',
@@ -71,10 +75,41 @@ class _ExperimentScreenState extends State<ExperimentScreen> {
           'Normal baseline: ₹13,800',
           'Recent average: ₹10,488',
         ],
-        explanation: 'Your Tuesday evening sales have been consistently lower than your normal Tuesday sales over the last four weeks.',
+        explanation:
+            'Your Tuesday evening sales have been consistently lower than your normal Tuesday sales over the last four weeks.',
         recommendation:
             'Test a targeted promotion between 4 PM and 7 PM next Tuesday.',
       );
+    } else {
+      _loadOpportunityFromApi();
+    }
+  }
+
+  Future<void> _loadOpportunityFromApi() async {
+    setState(() {
+      _isLoadingOpportunity = true;
+    });
+
+    try {
+      final oppId = widget.opportunityId ?? 'OP001';
+      final opp = await _apiService.getOpportunityDetail(oppId);
+      if (mounted) {
+        setState(() {
+          _opportunity = opp;
+          _isLoadingOpportunity = false;
+          if (opp == null) {
+            _executionState = ExperimentExecutionState.invalidOpportunity;
+          }
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingOpportunity = false;
+          _executionState = ExperimentExecutionState.error;
+          _errorMessage = "Failed to load opportunity from backend. Please retry.";
+        });
+      }
     }
   }
 
@@ -134,7 +169,15 @@ class _ExperimentScreenState extends State<ExperimentScreen> {
   }
 
   Widget _buildContent(BuildContext context) {
-    if (_executionState == ExperimentExecutionState.invalidOpportunity) {
+    if (_isLoadingOpportunity) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 48.0),
+        child: LoadingState(message: 'Loading opportunity details...'),
+      );
+    }
+
+    if (_executionState == ExperimentExecutionState.invalidOpportunity ||
+        _opportunity == null) {
       return _buildInvalidOpportunityView(context);
     }
 

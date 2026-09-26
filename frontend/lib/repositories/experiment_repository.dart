@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 
 import '../core/constants/api_endpoints.dart';
 import '../models/experiment.dart';
+import '../services/api/api_service.dart';
 
 /// Data source interface for experiment creation and retrieval.
 abstract class ExperimentDataSource {
@@ -140,7 +141,10 @@ class DefaultExperimentRepository implements ExperimentRepository {
   DefaultExperimentRepository({ExperimentDataSource? dataSource})
     : dataSource =
           dataSource ??
-          ApiExperimentDataSource(fallback: MockExperimentDataSource());
+          ApiExperimentDataSource(
+            fallback:
+                HttpApiService.isApiMode ? null : MockExperimentDataSource(),
+          );
 
   @override
   Future<ExperimentResult> startExperiment(ExperimentRequest request) {

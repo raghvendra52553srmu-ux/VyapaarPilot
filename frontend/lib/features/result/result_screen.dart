@@ -8,6 +8,8 @@ import '../../models/experiment.dart';
 import '../../repositories/experiment_repository.dart';
 import '../../services/api/api_service.dart';
 import '../../shared/widgets/app_scaffold.dart';
+import '../../shared/widgets/empty_state.dart';
+import '../../shared/widgets/error_state.dart';
 import '../../shared/widgets/loading_state.dart';
 import '../../shared/widgets/primary_button.dart';
 import '../../shared/widgets/status_badge.dart';
@@ -37,6 +39,7 @@ class _ResultScreenState extends State<ResultScreen> {
   late final ExperimentRepository _repository;
   ExperimentResult? _result;
   bool _isLoading = false;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -53,6 +56,7 @@ class _ResultScreenState extends State<ResultScreen> {
   Future<void> _loadResult() async {
     setState(() {
       _isLoading = true;
+      _errorMessage = null;
     });
 
     try {
@@ -63,21 +67,24 @@ class _ResultScreenState extends State<ResultScreen> {
           _isLoading = false;
         });
       }
-    } catch (_) {
+    } catch (e) {
       if (mounted) {
         setState(() {
-          // Deterministic fallback
-          _result = const ExperimentResult(
-            experimentId: 'EXP001',
-            opportunityId: 'OP001',
-            merchantId: 'M001',
-            baseline: 13800.0,
-            result: 17250.0,
-            upliftPercent: 25.0,
-            incrementalAmount: 3450.0,
-            status: 'completed',
-            isSynthetic: true,
-          );
+          if (HttpApiService.isMockMode) {
+            _result = const ExperimentResult(
+              experimentId: 'EXP001',
+              opportunityId: 'OP001',
+              merchantId: 'M001',
+              baseline: 13800.0,
+              result: 17250.0,
+              upliftPercent: 25.0,
+              incrementalAmount: 3450.0,
+              status: 'completed',
+              isSynthetic: true,
+            );
+          } else {
+            _errorMessage = "We couldn't load the experiment result. Backend may be waking up, please retry.";
+          }
           _isLoading = false;
         });
       }
@@ -94,19 +101,28 @@ class _ResultScreenState extends State<ResultScreen> {
       );
     }
 
-    final data =
-        _result ??
-        const ExperimentResult(
-          experimentId: 'EXP001',
-          opportunityId: 'OP001',
-          merchantId: 'M001',
-          baseline: 13800.0,
-          result: 17250.0,
-          upliftPercent: 25.0,
-          incrementalAmount: 3450.0,
-          status: 'completed',
-          isSynthetic: true,
-        );
+    if (_errorMessage != null) {
+      return AppScaffold(
+        title: 'Experiment Result',
+        currentIndex: 3,
+        body: ErrorState(
+          message: _errorMessage!,
+          onRetry: _loadResult,
+        ),
+      );
+    }
+
+    final data = _result;
+    if (data == null) {
+      return const AppScaffold(
+        title: 'Experiment Result',
+        currentIndex: 3,
+        body: EmptyState(
+          title: 'No Experiment Result',
+          subtitle: 'No experiment results were found for this ID.',
+        ),
+      );
+    }
 
     final baselineFormatted = CurrencyFormatter.formatRupee(data.baseline);
     final experimentFormatted = CurrencyFormatter.formatRupee(data.result);

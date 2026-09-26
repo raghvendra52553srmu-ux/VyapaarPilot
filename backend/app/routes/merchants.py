@@ -19,16 +19,19 @@ def list_merchants(db: Session = Depends(get_db)):
     """
     List all registered merchants for easy selection in Flutter UI.
     """
-    merchants = db.query(Merchant).all()
-    return [
-        {
-            "merchant_id": m.merchant_id,
-            "name": m.name,
-            "business_type": m.business_type,
-            "city": m.city
-        }
-        for m in merchants
-    ]
+    try:
+        merchants = db.query(Merchant).all()
+        return [
+            {
+                "merchant_id": m.merchant_id,
+                "name": m.name,
+                "business_type": m.business_type,
+                "city": m.city
+            }
+            for m in merchants
+        ]
+    except Exception:
+        return []
 
 @router.get("/{merchant_id}/summary", response_model=MerchantSummaryResponse)
 def get_merchant_summary(merchant_id: str, db: Session = Depends(get_db)):

@@ -441,9 +441,15 @@ class MockApiService implements ApiService {
 /// Live HTTP API Service that calls FastAPI backend with graceful fallback to MockApiService.
 /// Ensures 100% test reliability and instant live integration when FastAPI is running.
 class HttpApiService implements ApiService {
-  /// Global data mode. Set to DataMode.api in production to surface errors.
-  /// Set to DataMode.auto (default) for graceful fallback during development.
-  static DataMode dataMode = DataMode.auto;
+  /// Controls data source mode:
+  /// - DataMode.auto (default): Uses live Render backend, falls back gracefully in offline unit tests.
+  /// - DataMode.api: Strict live API mode. Rethrows all network/server errors.
+  /// - DataMode.mock: Offline preview mode with synthetic demo data.
+  static DataMode dataMode = const String.fromEnvironment('DATA_MODE') == 'api'
+      ? DataMode.api
+      : (const String.fromEnvironment('DATA_MODE') == 'mock'
+          ? DataMode.mock
+          : DataMode.auto);
   static bool get isApiMode => dataMode == DataMode.api;
   static bool get isMockMode => dataMode == DataMode.mock;
 
@@ -454,7 +460,7 @@ class HttpApiService implements ApiService {
   HttpApiService({
     http.Client? client,
     MockApiService? fallback,
-    this.timeout = const Duration(seconds: 10),
+    this.timeout = const Duration(seconds: 15),
   }) : _client = client ?? http.Client(),
        _fallback = fallback ?? MockApiService();
 
@@ -468,6 +474,7 @@ class HttpApiService implements ApiService {
       if (response.statusCode == 200) {
         return MerchantSummary.fromJson(json.decode(response.body));
       }
+      throw Exception("Backend error ${response.statusCode}: ${response.body}");
     } catch (e) {
       if (dataMode == DataMode.api) rethrow;
     }
@@ -484,6 +491,7 @@ class HttpApiService implements ApiService {
       if (response.statusCode == 200) {
         return SalesTrend.fromJson(json.decode(response.body));
       }
+      throw Exception("Backend error ${response.statusCode}: ${response.body}");
     } catch (e) {
       if (dataMode == DataMode.api) rethrow;
     }
@@ -501,6 +509,7 @@ class HttpApiService implements ApiService {
         final List list = json.decode(response.body);
         return list.map((e) => Opportunity.fromJson(e)).toList();
       }
+      throw Exception("Backend error ${response.statusCode}: ${response.body}");
     } catch (e) {
       if (dataMode == DataMode.api) rethrow;
     }
@@ -517,6 +526,7 @@ class HttpApiService implements ApiService {
       if (response.statusCode == 200) {
         return Opportunity.fromJson(json.decode(response.body));
       }
+      throw Exception("Backend error ${response.statusCode}: ${response.body}");
     } catch (e) {
       if (dataMode == DataMode.api) rethrow;
     }
@@ -540,6 +550,7 @@ class HttpApiService implements ApiService {
       if (response.statusCode == 200) {
         return RecommendationResponse.fromJson(json.decode(response.body));
       }
+      throw Exception("Backend error ${response.statusCode}: ${response.body}");
     } catch (e) {
       if (dataMode == DataMode.api) rethrow;
     }
@@ -566,6 +577,7 @@ class HttpApiService implements ApiService {
       if (response.statusCode == 200 || response.statusCode == 201) {
         return Experiment.fromJson(json.decode(response.body));
       }
+      throw Exception("Backend error ${response.statusCode}: ${response.body}");
     } catch (e) {
       if (dataMode == DataMode.api) rethrow;
     }
@@ -582,6 +594,7 @@ class HttpApiService implements ApiService {
       if (response.statusCode == 200) {
         return Experiment.fromJson(json.decode(response.body));
       }
+      throw Exception("Backend error ${response.statusCode}: ${response.body}");
     } catch (e) {
       if (dataMode == DataMode.api) rethrow;
     }
@@ -609,10 +622,11 @@ class HttpApiService implements ApiService {
               if (conversationId != null) 'conversation_id': conversationId,
             }),
           )
-          .timeout(timeout);
+          .timeout(timeout * 2);
       if (response.statusCode == 200) {
         return AiAskResponse.fromJson(json.decode(response.body));
       }
+      throw Exception("Backend error ${response.statusCode}: ${response.body}");
     } catch (e) {
       if (dataMode == DataMode.api) rethrow;
     }
@@ -659,6 +673,7 @@ class HttpApiService implements ApiService {
       if (response.statusCode == 200) {
         return AiAskResponse.fromJson(json.decode(response.body));
       }
+      throw Exception("Backend error ${response.statusCode}: ${response.body}");
     } catch (e) {
       if (dataMode == DataMode.api) rethrow;
     }
@@ -698,6 +713,7 @@ class HttpApiService implements ApiService {
       if (response.statusCode == 200) {
         return ActionExecuteResponse.fromJson(json.decode(response.body));
       }
+      throw Exception("Backend error ${response.statusCode}: ${response.body}");
     } catch (e) {
       if (dataMode == DataMode.api) rethrow;
     }
@@ -720,6 +736,7 @@ class HttpApiService implements ApiService {
       if (response.statusCode == 200) {
         return CapabilitiesResponse.fromJson(json.decode(response.body));
       }
+      throw Exception("Backend error ${response.statusCode}: ${response.body}");
     } catch (e) {
       if (dataMode == DataMode.api) rethrow;
     }
@@ -735,7 +752,7 @@ class HttpApiService implements ApiService {
           .timeout(timeout);
       return response.statusCode == 200;
     } catch (e) {
-      if (dataMode == DataMode.api) rethrow;
+      if (dataMode == DataMode.api) return false;
       return false;
     }
   }

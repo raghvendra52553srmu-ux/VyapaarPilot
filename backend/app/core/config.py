@@ -47,17 +47,26 @@ class Settings(BaseSettings):
         """
         Returns configured DATABASE_URL. If not explicitly set, constructs
         the MySQL PyMySQL connection string from individual DB parameters.
+        Falls back to self-contained SQLite for seamless cloud (Render) and local dev
+        when no remote MySQL server is configured.
         """
         if self.DATABASE_URL:
-            return self.DATABASE_URL
+            url = self.DATABASE_URL
+            if url.startswith("postgres://"):
+                url = url.replace("postgres://", "postgresql://", 1)
+            return url
         
-        encoded_password = quote_plus(self.DB_PASSWORD) if self.DB_PASSWORD else ""
-        if encoded_password:
-            user_pass = f"{self.DB_USER}:{encoded_password}"
-        else:
-            user_pass = f"{self.DB_USER}"
+        # If DB_HOST is explicitly configured to a remote MySQL host, use PyMySQL
+        if self.DB_HOST and self.DB_HOST not in ("localhost", "127.0.0.1"):
+            encoded_password = quote_plus(self.DB_PASSWORD) if self.DB_PASSWORD else ""
+            if encoded_password:
+                user_pass = f"{self.DB_USER}:{encoded_password}"
+            else:
+                user_pass = f"{self.DB_USER}"
+            return f"mysql+pymysql://{user_pass}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}?charset=utf8mb4"
             
-        return f"mysql+pymysql://{user_pass}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}?charset=utf8mb4"
+        # Default to self-contained SQLite for robust zero-config cloud/local operation
+        return "sqlite:///./vyapaarpilot.db"
 
     model_config = SettingsConfigDict(
         env_file=".env",
