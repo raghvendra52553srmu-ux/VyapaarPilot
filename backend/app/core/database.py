@@ -12,6 +12,15 @@ connect_args = {}
 if db_url.startswith("sqlite"):
     connect_args = {"check_same_thread": False}
     engine = create_engine(db_url, connect_args=connect_args)
+elif "postgresql" in db_url or "postgres" in db_url:
+    # Render / Cloud PostgreSQL connection
+    engine = create_engine(
+        db_url,
+        pool_pre_ping=True,
+        pool_recycle=3600,
+        pool_size=10,
+        max_overflow=20
+    )
 else:
     # MySQL / PyMySQL connection
     engine = create_engine(
