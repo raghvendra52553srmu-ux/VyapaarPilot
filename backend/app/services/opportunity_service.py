@@ -105,8 +105,12 @@ class OpportunityService:
         four_weeks_ago = latest_date - timedelta(weeks=4)
         twelve_weeks_ago = latest_date - timedelta(weeks=12)
 
-        # SQLite vs MySQL weekday syntax
-        if db.bind.dialect.name == "sqlite":
+        # Dialect-aware weekday and hour syntax (PostgreSQL, SQLite, MySQL)
+        dialect_name = getattr(db.bind.dialect, "name", "mysql") if db.bind else "mysql"
+        if dialect_name in ("postgresql", "postgres"):
+            tue_filter = func.extract("dow", Transaction.timestamp) == 2
+            hour_filter = func.extract("hour", Transaction.timestamp).in_([16, 17, 18])
+        elif dialect_name == "sqlite":
             tue_filter = func.strftime("%w", Transaction.timestamp) == "2"
             hour_filter = func.strftime("%H", Transaction.timestamp).in_(["16", "17", "18"])
         else:
@@ -175,7 +179,11 @@ class OpportunityService:
         """
         four_weeks_ago = latest_date - timedelta(weeks=4)
 
-        if db.bind.dialect.name == "sqlite":
+        dialect_name = getattr(db.bind.dialect, "name", "mysql") if db.bind else "mysql"
+        if dialect_name in ("postgresql", "postgres"):
+            weekday_cond = func.extract("dow", Transaction.timestamp).in_([1, 2, 3, 4])
+            weekend_cond = func.extract("dow", Transaction.timestamp).in_([5, 6])
+        elif dialect_name == "sqlite":
             weekday_cond = func.strftime("%w", Transaction.timestamp).in_(["1", "2", "3", "4"]) # Mon-Thu
             weekend_cond = func.strftime("%w", Transaction.timestamp).in_(["5", "6"]) # Fri-Sat
         else:

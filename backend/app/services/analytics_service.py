@@ -224,9 +224,12 @@ class AnalyticsService:
         tuesday_hourly = []
 
         for h in hours:
-            # SQLite uses strftime('%w', ...) where 2 = Tuesday
-            # MySQL uses DAYOFWEEK(...) where 3 = Tuesday (1=Sun, 2=Mon, 3=Tue)
-            if db.bind.dialect.name == "sqlite":
+            # SQLite vs PostgreSQL vs MySQL
+            dialect_name = getattr(db.bind.dialect, "name", "mysql") if db.bind else "mysql"
+            if dialect_name in ("postgresql", "postgres"):
+                day_filter = func.extract("dow", Transaction.timestamp) == 2
+                hour_filter = func.extract("hour", Transaction.timestamp) == h
+            elif dialect_name == "sqlite":
                 day_filter = func.strftime("%w", Transaction.timestamp) == "2"
                 hour_filter = func.strftime("%H", Transaction.timestamp) == f"{h:02d}"
             else:
