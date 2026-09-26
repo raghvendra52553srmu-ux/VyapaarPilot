@@ -1,21 +1,16 @@
-from fastapi.testclient import TestClient
-from app.main import app
-
-client = TestClient(app)
-
-def test_root():
+def test_root(client):
     response = client.get("/")
     assert response.status_code == 200
     assert response.json()["status"] == "online"
 
-def test_merchant_summary():
+def test_merchant_summary(client):
     response = client.get("/api/merchants/M001/summary")
     assert response.status_code == 200
     data = response.json()
     assert data["merchant_id"] == "M001"
     assert "today_sales" in data
 
-def test_merchant_opportunities():
+def test_merchant_opportunities(client):
     response = client.get("/api/merchants/M001/opportunities")
     assert response.status_code == 200
     data = response.json()
