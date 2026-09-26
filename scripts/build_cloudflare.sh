@@ -51,13 +51,14 @@ echo "Generating Cloudflare SPA routing configuration..."
 OUTPUT_DIR="$FRONTEND_DIR/build/web"
 mkdir -p "$OUTPUT_DIR"
 
-# Standard Cloudflare Pages SPA rewrite rule
-echo "/*    /index.html   200" > "$OUTPUT_DIR/_redirects"
+# Clean any legacy _redirects file to prevent Cloudflare rewrite loop error 100324
+rm -f "$OUTPUT_DIR/_redirects"
 
-# Static 404 fallback
+# Static 404 fallback (reloads Flutter SPA)
 cp "$OUTPUT_DIR/index.html" "$OUTPUT_DIR/404.html"
 
 echo "✓ Build output successfully generated at: $OUTPUT_DIR"
+
 echo "=================================================="
 echo "VyapaarPilot Cloudflare Build Completed Successfully!"
 echo "=================================================="
