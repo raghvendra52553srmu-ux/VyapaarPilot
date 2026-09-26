@@ -183,7 +183,14 @@ class AnalyticsService:
 
         # 2. Weekly trends (past 8 weeks)
         start_weekly = latest_date - timedelta(weeks=8)
-        week_expr = func.strftime("%Y-W%W", Transaction.timestamp) if db.bind.dialect.name == "sqlite" else func.date_format(Transaction.timestamp, "%Y-W%u")
+        dialect_name = getattr(db.bind.dialect, "name", "mysql") if db.bind else "mysql"
+        if dialect_name in ("postgresql", "postgres"):
+            week_expr = func.to_char(Transaction.timestamp, 'YYYY-"W"IW')
+        elif dialect_name == "sqlite":
+            week_expr = func.strftime("%Y-W%W", Transaction.timestamp)
+        else:
+            week_expr = func.date_format(Transaction.timestamp, "%Y-W%u")
+
         weekly_rows = db.query(
             week_expr,
             func.coalesce(func.sum(Transaction.amount), 0.0),
@@ -201,7 +208,13 @@ class AnalyticsService:
 
         # 3. Monthly trends (past 6 months)
         start_monthly = latest_date - timedelta(days=180)
-        month_expr = func.strftime("%Y-%m", Transaction.timestamp) if db.bind.dialect.name == "sqlite" else func.date_format(Transaction.timestamp, "%Y-%m")
+        if dialect_name in ("postgresql", "postgres"):
+            month_expr = func.to_char(Transaction.timestamp, "YYYY-MM")
+        elif dialect_name == "sqlite":
+            month_expr = func.strftime("%Y-%m", Transaction.timestamp)
+        else:
+            month_expr = func.date_format(Transaction.timestamp, "%Y-%m")
+
         monthly_rows = db.query(
             month_expr,
             func.coalesce(func.sum(Transaction.amount), 0.0),
@@ -211,6 +224,7 @@ class AnalyticsService:
             Transaction.status == "SUCCESS",
             Transaction.timestamp >= start_monthly
         ).group_by(month_expr).order_by(month_expr).all()
+
 
         monthly_trends = [
             {"month": str(r[0]), "sales": round(float(r[1]), 2), "transactions": int(r[2])}
@@ -267,8 +281,12 @@ class AnalyticsService:
         return {
             "merchant_id": merchant_id,
             "period": period,
+            "data": daily_trends,
+            "daily": daily_trends,
             "daily_trends": daily_trends,
+            "weekly": weekly_trends,
             "weekly_trends": weekly_trends,
+            "monthly": monthly_trends,
             "monthly_trends": monthly_trends,
             "tuesday_hourly_baseline": tuesday_hourly
         }

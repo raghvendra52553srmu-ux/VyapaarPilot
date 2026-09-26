@@ -50,7 +50,7 @@ cors_origins = [o for o in settings.CORS_ORIGINS if o != "*"] if isinstance(sett
 app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_origins if cors_origins else ["*"],
-    allow_origin_regex=r"https://.*\.pages\.dev",
+    allow_origin_regex=r"https://.*\.(pages\.dev|workers\.dev)",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

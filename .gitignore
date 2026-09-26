@@ -45,3 +45,6 @@ logs/
 
 # Node modules
 node_modules/
+
+# Cloudflared binary
+cloudflared
