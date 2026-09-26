@@ -26,7 +26,7 @@ services:
       - key: ASSEMBLYAI_API_KEY
         sync: false
       - key: STT_PROVIDER
-        value: assemblyai
+        value: groq
       - key: TTS_PROVIDER
         value: assemblyai
       - key: CORS_ORIGINS

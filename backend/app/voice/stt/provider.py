@@ -267,21 +267,27 @@ class AssemblyAISTTProvider(SpeechToTextProvider):
                 provider=self.provider_name
             )
         except Exception as e:
-            logger.error(f"AssemblyAI STT transcription failed: {e}")
+            logger.warning(f"AssemblyAI STT transcription failed ({e}). Falling back to Groq Whisper...")
+            if settings.GROQ_API_KEY:
+                try:
+                    fallback_whisper = GroqSTTProvider()
+                    return await fallback_whisper.transcribe(audio_bytes, mime_type, language_hint)
+                except Exception as fb_err:
+                    logger.error(f"Groq Whisper fallback also failed: {fb_err}")
             raise
 
 def get_stt_provider() -> SpeechToTextProvider:
-    provider_name = getattr(settings, "STT_PROVIDER", "assemblyai").lower()
+    provider_name = getattr(settings, "STT_PROVIDER", "groq").lower()
+
+    if (provider_name in ["groq", "whisper"] or not settings.ASSEMBLYAI_API_KEY) and settings.GROQ_API_KEY:
+        try:
+            return GroqSTTProvider()
+        except Exception:
+            pass
 
     if (provider_name == "assemblyai" or not settings.GROQ_API_KEY) and settings.ASSEMBLYAI_API_KEY:
         try:
             return AssemblyAISTTProvider()
-        except Exception:
-            pass
-
-    if (provider_name == "groq" or not settings.GEMINI_API_KEY) and settings.GROQ_API_KEY:
-        try:
-            return GroqSTTProvider()
         except Exception:
             pass
 

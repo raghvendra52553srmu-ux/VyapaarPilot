@@ -32,7 +32,7 @@ class Settings(BaseSettings):
 
     # Voice / Multimodal Settings
     ASSEMBLYAI_API_KEY: str = ""
-    STT_PROVIDER: str = "assemblyai"
+    STT_PROVIDER: str = "groq"
     TTS_PROVIDER: str = "assemblyai"
     VOICE_MAX_UPLOAD_MB: float = 15.0
     VOICE_DEFAULT_LANGUAGE: str = "hinglish"
