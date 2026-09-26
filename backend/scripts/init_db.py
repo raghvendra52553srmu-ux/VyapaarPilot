@@ -45,6 +45,7 @@ def init_and_seed_database():
             city="Lucknow"
         )
         db.add(m001)
+        db.commit()
 
         # Seed customers
         customers = []
