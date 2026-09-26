@@ -90,10 +90,7 @@ class ChatBubble extends StatelessWidget {
                         bottomLeft: Radius.circular(14.0),
                         bottomRight: Radius.circular(14.0),
                       ),
-                      border: Border.all(
-                        color: AppColors.border,
-                        width: 1.0,
-                      ),
+                      border: Border.all(color: AppColors.border, width: 1.0),
                     ),
                     child: Text(
                       message.text,
@@ -132,13 +129,16 @@ class ChatBubble extends StatelessWidget {
                       color: AppColors.secondaryBlue,
                     ),
                     const SizedBox(width: AppSpacing.xs),
-                    Text(
-                      'Executed: ${message.toolName}',
-                      style: const TextStyle(
-                        fontSize: 11.0,
-                        fontFamily: 'monospace',
-                        color: AppColors.secondaryBlue,
-                        fontWeight: FontWeight.w600,
+                    Flexible(
+                      child: Text(
+                        'Executed: ${message.toolName}',
+                        style: const TextStyle(
+                          fontSize: 11.0,
+                          fontFamily: 'monospace',
+                          color: AppColors.secondaryBlue,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],
@@ -167,6 +167,7 @@ class ChatBubble extends StatelessWidget {
     ActionProposal proposal,
   ) {
     return Container(
+      key: const Key('assistant_confirmation_panel'),
       padding: AppSpacing.paddingMd,
       decoration: BoxDecoration(
         color: AppColors.surface,
@@ -179,8 +180,9 @@ class ChatBubble extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: (proposal.isConfirmed ? AppColors.success : AppColors.warning)
-                .withValues(alpha: 0.08),
+            color:
+                (proposal.isConfirmed ? AppColors.success : AppColors.warning)
+                    .withValues(alpha: 0.08),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -192,26 +194,26 @@ class ChatBubble extends StatelessWidget {
           Row(
             children: [
               Icon(
-                proposal.isConfirmed
-                    ? Icons.check_circle
-                    : Icons.bolt,
+                proposal.isConfirmed ? Icons.check_circle : Icons.bolt,
                 size: 18.0,
                 color: proposal.isConfirmed
                     ? AppColors.success
                     : AppColors.warning,
               ),
               const SizedBox(width: AppSpacing.xs),
-              Text(
-                proposal.isConfirmed
-                    ? 'ACTION CONFIRMED'
-                    : 'AGENTIC ACTION PROPOSAL',
-                style: TextStyle(
-                  fontSize: 11.0,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.5,
-                  color: proposal.isConfirmed
-                      ? AppColors.success
-                      : AppColors.warning,
+              Flexible(
+                child: Text(
+                  proposal.isConfirmed
+                      ? 'ACTION CONFIRMED'
+                      : 'AGENTIC ACTION PROPOSAL',
+                  style: TextStyle(
+                    fontSize: 11.0,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                    color: proposal.isConfirmed
+                        ? AppColors.success
+                        : AppColors.warning,
+                  ),
                 ),
               ),
             ],
@@ -273,8 +275,10 @@ class ChatBubble extends StatelessWidget {
               ),
             )
           else
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+            Wrap(
+              alignment: WrapAlignment.end,
+              spacing: AppSpacing.sm,
+              runSpacing: AppSpacing.xs,
               children: [
                 OutlinedButton(
                   key: const Key('assistant_cancel_action_button'),
@@ -296,7 +300,6 @@ class ChatBubble extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: AppSpacing.sm),
                 ElevatedButton(
                   key: const Key('assistant_confirm_action_button'),
                   style: ElevatedButton.styleFrom(

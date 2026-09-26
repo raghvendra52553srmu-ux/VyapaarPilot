@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:http/http.dart' as http;
 
 import '../core/constants/api_endpoints.dart';
@@ -63,42 +64,66 @@ class MockExperimentDataSource implements ExperimentDataSource {
   }
 }
 
-/// Live HTTP data source calling FastAPI endpoints with network handling.
+/// Live HTTP data source calling FastAPI endpoints with graceful fallback to demo mock data.
 class ApiExperimentDataSource implements ExperimentDataSource {
   final http.Client _client;
   final Duration timeout;
+  final MockExperimentDataSource? fallback;
 
   ApiExperimentDataSource({
     http.Client? client,
     this.timeout = const Duration(seconds: 4),
+    this.fallback,
   }) : _client = client ?? http.Client();
 
   @override
   Future<ExperimentResult> createExperiment(ExperimentRequest request) async {
-    final response = await _client
-        .post(
-          Uri.parse(ApiEndpoints.experiments),
-          headers: {'Content-Type': 'application/json'},
-          body: json.encode(request.toJson()),
-        )
-        .timeout(timeout);
+    try {
+      final response = await _client
+          .post(
+            Uri.parse(ApiEndpoints.experiments),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode(request.toJson()),
+          )
+          .timeout(timeout);
 
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      return ExperimentResult.fromJson(json.decode(response.body));
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return ExperimentResult.fromJson(json.decode(response.body));
+      }
+    } catch (e) {
+      if (fallback != null) {
+        return fallback!.createExperiment(request);
+      }
+      rethrow;
     }
-    throw Exception("Failed to create experiment (status ${response.statusCode})");
+
+    if (fallback != null) {
+      return fallback!.createExperiment(request);
+    }
+    throw Exception("Failed to create experiment");
   }
 
   @override
   Future<ExperimentResult> getExperimentResult(String experimentId) async {
-    final response = await _client
-        .get(Uri.parse(ApiEndpoints.experimentDetail(experimentId)))
-        .timeout(timeout);
+    try {
+      final response = await _client
+          .get(Uri.parse(ApiEndpoints.experimentDetail(experimentId)))
+          .timeout(timeout);
 
-    if (response.statusCode == 200) {
-      return ExperimentResult.fromJson(json.decode(response.body));
+      if (response.statusCode == 200) {
+        return ExperimentResult.fromJson(json.decode(response.body));
+      }
+    } catch (e) {
+      if (fallback != null) {
+        return fallback!.getExperimentResult(experimentId);
+      }
+      rethrow;
     }
-    throw Exception("Failed to fetch experiment (status ${response.statusCode})");
+
+    if (fallback != null) {
+      return fallback!.getExperimentResult(experimentId);
+    }
+    throw Exception("Failed to fetch experiment");
   }
 }
 
@@ -113,7 +138,9 @@ class DefaultExperimentRepository implements ExperimentRepository {
   final ExperimentDataSource dataSource;
 
   DefaultExperimentRepository({ExperimentDataSource? dataSource})
-      : dataSource = dataSource ?? MockExperimentDataSource();
+    : dataSource =
+          dataSource ??
+          ApiExperimentDataSource(fallback: MockExperimentDataSource());
 
   @override
   Future<ExperimentResult> startExperiment(ExperimentRequest request) {

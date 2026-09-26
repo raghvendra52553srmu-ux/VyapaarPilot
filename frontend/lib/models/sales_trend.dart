@@ -7,7 +7,7 @@ class DailySalesPoint {
 
   factory DailySalesPoint.fromJson(Map<String, dynamic> json) {
     return DailySalesPoint(
-      label: json['label'] ?? '',
+      label: json['label'] ?? json['date'] ?? '',
       sales: (json['sales'] ?? 0.0).toDouble(),
     );
   }
@@ -22,7 +22,7 @@ class SalesTrend {
   const SalesTrend({required this.period, required this.data});
 
   factory SalesTrend.fromJson(Map<String, dynamic> json) {
-    final list = json['data'] as List<dynamic>? ?? [];
+    final list = json['data'] as List<dynamic>? ?? json['daily_trends'] as List<dynamic>? ?? [];
     return SalesTrend(
       period: json['period'] ?? '7d',
       data: list

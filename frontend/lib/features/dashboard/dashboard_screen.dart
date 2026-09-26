@@ -41,7 +41,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
-    _apiService = widget.apiService ?? MockApiService();
+    _apiService = widget.apiService ?? HttpApiService();
     _loadDashboardData();
   }
 

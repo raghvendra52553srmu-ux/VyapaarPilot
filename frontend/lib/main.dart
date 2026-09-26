@@ -9,7 +9,9 @@ void main() {
 }
 
 class VyapaarPilotApp extends StatelessWidget {
-  const VyapaarPilotApp({super.key});
+  final String initialRoute;
+
+  const VyapaarPilotApp({super.key, this.initialRoute = AppRouter.landing});
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +19,7 @@ class VyapaarPilotApp extends StatelessWidget {
       title: 'VyapaarPilot',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      initialRoute: AppRouter.dashboard,
+      initialRoute: initialRoute,
       onGenerateRoute: AppRouter.generateRoute,
     );
   }

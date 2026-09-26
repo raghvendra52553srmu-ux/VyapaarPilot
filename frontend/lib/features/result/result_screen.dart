@@ -94,7 +94,8 @@ class _ResultScreenState extends State<ResultScreen> {
       );
     }
 
-    final data = _result ??
+    final data =
+        _result ??
         const ExperimentResult(
           experimentId: 'EXP001',
           opportunityId: 'OP001',
@@ -109,8 +110,9 @@ class _ResultScreenState extends State<ResultScreen> {
 
     final baselineFormatted = CurrencyFormatter.formatRupee(data.baseline);
     final experimentFormatted = CurrencyFormatter.formatRupee(data.result);
-    final incrementalFormatted =
-        CurrencyFormatter.formatRupee(data.incrementalAmount);
+    final incrementalFormatted = CurrencyFormatter.formatRupee(
+      data.incrementalAmount,
+    );
     final upliftFormatted = '+${data.upliftPercent.toStringAsFixed(0)}%';
 
     return AppScaffold(
@@ -268,7 +270,9 @@ class _ResultScreenState extends State<ResultScreen> {
                                   color: Colors.white,
                                   borderRadius: AppRadius.roundedLarge,
                                   border: Border.all(
-                                    color: AppColors.success.withValues(alpha: 0.4),
+                                    color: AppColors.success.withValues(
+                                      alpha: 0.4,
+                                    ),
                                   ),
                                 ),
                                 child: FittedBox(
@@ -405,13 +409,19 @@ class _ResultScreenState extends State<ResultScreen> {
                   key: const Key('result_ask_assistant_button'),
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size(double.infinity, 48.0),
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.md,
+                    ),
                     shape: const RoundedRectangleBorder(
                       borderRadius: AppRadius.roundedSmall,
                     ),
                     side: const BorderSide(color: AppColors.primary),
                   ),
-                  icon: const Icon(Icons.auto_awesome, color: AppColors.primary, size: 18),
+                  icon: const Icon(
+                    Icons.auto_awesome,
+                    color: AppColors.primary,
+                    size: 18,
+                  ),
                   label: const Text(
                     'Ask VyapaarPilot',
                     style: TextStyle(

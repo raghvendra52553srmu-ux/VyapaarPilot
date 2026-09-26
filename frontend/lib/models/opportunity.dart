@@ -34,21 +34,42 @@ class Opportunity {
   double get difference => current - baseline;
 
   factory Opportunity.fromJson(Map<String, dynamic> json) {
-    final evidenceList = json['evidence'] as List<dynamic>? ?? [];
+    List<String> parsedEvidence = [];
+    if (json['evidence'] is List) {
+      parsedEvidence = (json['evidence'] as List).map((e) => e.toString()).toList();
+    } else if (json['evidence'] is Map) {
+      parsedEvidence = (json['evidence'] as Map).entries.map((e) => '${e.key}: ${e.value}').toList();
+    }
+
+    double decline = 0.0;
+    if (json['decline_percent'] != null) {
+      decline = (json['decline_percent'] as num).toDouble();
+    } else if (json['change_percent'] != null) {
+      decline = (json['change_percent'] as num).toDouble().abs();
+    }
+
+    String parsedPeriod = json['period'] as String? ?? '';
+    if (parsedPeriod.isEmpty && json['period_start'] != null && json['period_end'] != null) {
+      parsedPeriod = '${json['period_start']} – ${json['period_end']}';
+    }
+    if (parsedPeriod.isEmpty) {
+      parsedPeriod = '4 PM – 7 PM';
+    }
+
     return Opportunity(
       opportunityId: json['opportunity_id'] ?? json['id'] ?? '',
       merchantId: json['merchant_id'] ?? '',
       type: json['type'] ?? 'slow_period',
       title: json['title'] ?? '',
-      day: json['day'] ?? 'Tuesday',
-      period: json['period'] ?? '4 PM – 7 PM',
-      declinePercent: (json['decline_percent'] ?? 0.0).toDouble(),
-      baseline: (json['baseline'] ?? 0.0).toDouble(),
-      current: (json['current'] ?? 0.0).toDouble(),
+      day: json['day'] ?? json['day_of_week'] ?? 'Tuesday',
+      period: parsedPeriod,
+      declinePercent: decline,
+      baseline: (json['baseline'] ?? json['baseline_amount'] ?? 0.0).toDouble(),
+      current: (json['current'] ?? json['current_amount'] ?? 0.0).toDouble(),
       weeksObserved: json['weeks_observed'] ?? 4,
-      evidence: evidenceList.map((e) => e.toString()).toList(),
+      evidence: parsedEvidence,
       explanation: json['explanation'] ?? '',
-      recommendation: json['recommendation'] ?? '',
+      recommendation: json['recommendation'] ?? json['recommended_action'] ?? '',
     );
   }
 

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../features/dashboard/dashboard_screen.dart';
-import '../../features/opportunity/opportunity_screen.dart';
-import '../../features/experiment/experiment_screen.dart';
-import '../../features/result/result_screen.dart';
 import '../../features/assistant/assistant_screen.dart';
+import '../../features/dashboard/dashboard_screen.dart';
+import '../../features/experiment/experiment_screen.dart';
+import '../../features/landing/landing_screen.dart';
+import '../../features/opportunity/opportunity_screen.dart';
+import '../../features/result/result_screen.dart';
 import '../../models/experiment.dart';
 import '../../models/opportunity.dart';
 
@@ -12,6 +13,8 @@ import '../../models/opportunity.dart';
 class AppRouter {
   AppRouter._();
 
+  static const String landing = '/';
+  static const String app = '/app';
   static const String dashboard = '/dashboard';
   static const String opportunity = '/opportunity';
   static const String experiment = '/experiment';
@@ -20,7 +23,12 @@ class AppRouter {
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
-      case '/':
+      case landing:
+        return MaterialPageRoute(
+          builder: (_) => const LandingScreen(),
+          settings: settings,
+        );
+      case app:
       case dashboard:
         return MaterialPageRoute(
           builder: (_) => const DashboardScreen(),

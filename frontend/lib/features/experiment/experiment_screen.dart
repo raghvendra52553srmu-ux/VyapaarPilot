@@ -12,12 +12,7 @@ import '../../shared/widgets/app_scaffold.dart';
 import '../../shared/widgets/primary_button.dart';
 import '../../shared/widgets/status_badge.dart';
 
-enum ExperimentExecutionState {
-  idle,
-  running,
-  error,
-  invalidOpportunity,
-}
+enum ExperimentExecutionState { idle, running, error, invalidOpportunity }
 
 /// Phase 3 Experiment Setup & Execution Screen.
 /// Clearly communicates what was detected, the test parameters, historical baseline,
@@ -76,8 +71,7 @@ class _ExperimentScreenState extends State<ExperimentScreen> {
           'Normal baseline: ₹13,800',
           'Recent average: ₹10,488',
         ],
-        explanation:
-            'Your Tuesday evening sales have been consistently lower than your normal Tuesday sales over the last four weeks.',
+        explanation: 'Your Tuesday evening sales have been consistently lower than your normal Tuesday sales over the last four weeks.',
         recommendation:
             'Test a targeted promotion between 4 PM and 7 PM next Tuesday.',
       );
@@ -95,7 +89,8 @@ class _ExperimentScreenState extends State<ExperimentScreen> {
     });
 
     try {
-      final oppId = _opportunity?.opportunityId ?? widget.opportunityId ?? 'OP001';
+      final oppId =
+          _opportunity?.opportunityId ?? widget.opportunityId ?? 'OP001';
       final request = ExperimentRequest(
         merchantId: 'M001',
         opportunityId: oppId,
@@ -109,11 +104,7 @@ class _ExperimentScreenState extends State<ExperimentScreen> {
       _executionState = ExperimentExecutionState.idle;
 
       // Navigate to Result screen with measured outcome
-      Navigator.pushNamed(
-        context,
-        AppRouter.result,
-        arguments: result,
-      );
+      Navigator.pushNamed(context, AppRouter.result, arguments: result);
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -180,10 +171,7 @@ class _ExperimentScreenState extends State<ExperimentScreen> {
                 type: BadgeType.info,
               ),
             ),
-            const StatusBadge(
-              text: 'READY TO RUN',
-              type: BadgeType.neutral,
-            ),
+            const StatusBadge(text: 'READY TO RUN', type: BadgeType.neutral),
           ],
         ),
         const SizedBox(height: AppSpacing.lg),
@@ -248,8 +236,7 @@ class _ExperimentScreenState extends State<ExperimentScreen> {
         // WHY TEST THIS? Card
         _buildInfoCard(
           title: 'WHY TEST THIS?',
-          content:
-              'Sales during this period have been below your usual Tuesday evening level for four consecutive weeks.',
+          content: 'Sales during this period have been below your usual Tuesday evening level for four consecutive weeks.',
           icon: Icons.help_outline,
           iconColor: AppColors.secondaryBlue,
         ),
@@ -287,11 +274,7 @@ class _ExperimentScreenState extends State<ExperimentScreen> {
           child: const Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(
-                Icons.science,
-                size: 20.0,
-                color: AppColors.secondaryBlue,
-              ),
+              Icon(Icons.science, size: 20.0, color: AppColors.secondaryBlue),
               SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Column(
@@ -336,7 +319,9 @@ class _ExperimentScreenState extends State<ExperimentScreen> {
                   height: 20,
                   child: CircularProgressIndicator(
                     strokeWidth: 2.5,
-                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.secondaryBlue),
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      AppColors.secondaryBlue,
+                    ),
                   ),
                 ),
                 SizedBox(width: AppSpacing.md),
@@ -450,10 +435,7 @@ class _ExperimentScreenState extends State<ExperimentScreen> {
           const SizedBox(height: AppSpacing.xs),
           const Text(
             'Your experiment was not started. Please try again.',
-            style: TextStyle(
-              fontSize: 13.0,
-              color: AppColors.textSecondary,
-            ),
+            style: TextStyle(fontSize: 13.0, color: AppColors.textSecondary),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: AppSpacing.xl),
@@ -514,10 +496,7 @@ class _ExperimentScreenState extends State<ExperimentScreen> {
           const SizedBox(height: AppSpacing.xs),
           const Text(
             "The opportunity you're trying to test could not be loaded.",
-            style: TextStyle(
-              fontSize: 13.0,
-              color: AppColors.textSecondary,
-            ),
+            style: TextStyle(fontSize: 13.0, color: AppColors.textSecondary),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: AppSpacing.lg),

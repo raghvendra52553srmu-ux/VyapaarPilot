@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:frontend/core/routing/app_router.dart';
 import 'package:frontend/features/dashboard/dashboard_screen.dart';
 import 'package:frontend/main.dart';
 import 'package:frontend/services/api/api_service.dart';
@@ -17,7 +18,9 @@ void main() {
         });
 
         // 1. Launch App
-        await tester.pumpWidget(const VyapaarPilotApp());
+        await tester.pumpWidget(
+          const VyapaarPilotApp(initialRoute: AppRouter.dashboard),
+        );
         await tester.pumpAndSettle();
 
         // --- 1. DASHBOARD VERIFICATION ---
@@ -148,11 +151,15 @@ void main() {
         tester.view.resetDevicePixelRatio();
       });
 
-      await tester.pumpWidget(const VyapaarPilotApp());
+      await tester.pumpWidget(
+        const VyapaarPilotApp(initialRoute: AppRouter.dashboard),
+      );
       await tester.pumpAndSettle();
 
       // Open AI Assistant via Floating Action Button
-      final openAssistantFinder = find.byKey(const Key('open_assistant_button'));
+      final openAssistantFinder = find.byKey(
+        const Key('open_assistant_button'),
+      );
       expect(openAssistantFinder, findsOneWidget);
       await tester.tap(openAssistantFinder);
       await tester.pumpAndSettle();
@@ -195,20 +202,22 @@ void main() {
       final textInputFinder = find.byKey(const Key('assistant_text_input'));
       final sendButtonFinder = find.byKey(const Key('assistant_send_button'));
 
-      await tester.enterText(textInputFinder, 'Start Tuesday 4-7 PM experiment');
+      await tester.enterText(
+        textInputFinder,
+        'Start Tuesday 4-7 PM experiment',
+      );
       await tester.tap(sendButtonFinder);
       await tester.pumpAndSettle();
 
       // Verify Agentic Action Confirmation Card is rendered
-      expect(
-        find.text('Start Tuesday 4–7 PM experiment?'),
-        findsOneWidget,
-      );
+      expect(find.text('Start Tuesday 4–7 PM experiment?'), findsOneWidget);
       expect(
         find.byKey(const Key('assistant_cancel_action_button')),
         findsOneWidget,
       );
-      final confirmBtn = find.byKey(const Key('assistant_confirm_action_button'));
+      final confirmBtn = find.byKey(
+        const Key('assistant_confirm_action_button'),
+      );
       expect(confirmBtn, findsOneWidget);
 
       // Tap Confirm
@@ -226,21 +235,27 @@ void main() {
       // 1. Mobile width (360x800)
       tester.view.physicalSize = const Size(360, 800);
       tester.view.devicePixelRatio = 1.0;
-      await tester.pumpWidget(const VyapaarPilotApp());
+      await tester.pumpWidget(
+        const VyapaarPilotApp(initialRoute: AppRouter.dashboard),
+      );
       await tester.pumpAndSettle();
       expect(find.text("Today's Sales"), findsOneWidget);
       expect(tester.takeException(), isNull); // No RenderFlex overflow
 
       // 2. Tablet width (768x1024)
       tester.view.physicalSize = const Size(768, 1024);
-      await tester.pumpWidget(const VyapaarPilotApp());
+      await tester.pumpWidget(
+        const VyapaarPilotApp(initialRoute: AppRouter.dashboard),
+      );
       await tester.pumpAndSettle();
       expect(find.text("Today's Sales"), findsOneWidget);
       expect(tester.takeException(), isNull);
 
       // 3. Desktop / Web width (1280x800)
       tester.view.physicalSize = const Size(1280, 800);
-      await tester.pumpWidget(const VyapaarPilotApp());
+      await tester.pumpWidget(
+        const VyapaarPilotApp(initialRoute: AppRouter.dashboard),
+      );
       await tester.pumpAndSettle();
       expect(find.text("Today's Sales"), findsOneWidget);
       expect(tester.takeException(), isNull);

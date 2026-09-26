@@ -6,9 +6,13 @@ class AppColors {
   AppColors._();
 
   // Core Brand & Surface Colors
-  static const Color primary = Color(0xFF123B66); // Deep Navy
+  static const Color deepNavy = Color(0xFF0B2E4F); // Deep Navy
+  static const Color primary = Color(0xFF123B66); // Primary Navy
+  static const Color paymentBlue = Color(0xFF00A8E8); // Payment Blue
+  static const Color secondaryBlue = Color(0xFF2F80ED); // Action Blue
+  static const Color actionBlue = Color(0xFF2F80ED); // Action Blue
   static const Color lightBlue = Color(0xFFE8F3FF); // Soft Ice Blue
-  static const Color secondaryBlue = Color(0xFF2F80ED); // Primary / Accent Blue
+  static const Color veryLightBlue = Color(0xFFF3F9FF); // Very Light Blue
   static const Color background = Color(0xFFF7F9FC); // Slate Tint
   static const Color surface = Color(0xFFFFFFFF); // Pure White
 
@@ -19,6 +23,7 @@ class AppColors {
   // Semantic Status Colors
   static const Color success = Color(0xFF16A34A); // Growth Green
   static const Color warning = Color(0xFFF59E0B); // Opportunity Amber
+  static const Color opportunity = Color(0xFFF59E0B); // Opportunity Amber
   static const Color error = Color(0xFFDC2626); // Alert Red
 
   // Subtle Borders & Surfaces

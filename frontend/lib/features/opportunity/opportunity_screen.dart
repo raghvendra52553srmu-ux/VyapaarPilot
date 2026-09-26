@@ -40,7 +40,7 @@ class _OpportunityScreenState extends State<OpportunityScreen> {
   @override
   void initState() {
     super.initState();
-    _apiService = widget.apiService ?? MockApiService();
+    _apiService = widget.apiService ?? HttpApiService();
 
     if (widget.opportunity != null) {
       _opportunity = widget.opportunity;

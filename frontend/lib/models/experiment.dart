@@ -9,9 +9,9 @@ class ExperimentRequest {
   });
 
   Map<String, dynamic> toJson() => {
-        'merchant_id': merchantId,
-        'opportunity_id': opportunityId,
-      };
+    'merchant_id': merchantId,
+    'opportunity_id': opportunityId,
+  };
 
   factory ExperimentRequest.fromJson(Map<String, dynamic> json) {
     return ExperimentRequest(
@@ -51,8 +51,10 @@ class ExperimentResult {
   bool get isSyntheticDemo => isSynthetic;
 
   factory ExperimentResult.fromJson(Map<String, dynamic> json) {
-    final b = (json['baseline'] ?? json['baseline_amount'] ?? 13800.0).toDouble();
-    final r = (json['result'] ?? json['experiment_amount'] ?? 17250.0).toDouble();
+    final b = (json['baseline'] ?? json['baseline_amount'] ?? 13800.0)
+        .toDouble();
+    final r = (json['result'] ?? json['experiment_amount'] ?? 17250.0)
+        .toDouble();
     final u = (json['uplift_percent'] ?? 25.0).toDouble();
     final inc = json['incremental_amount'] != null
         ? (json['incremental_amount'] as num).toDouble()
@@ -73,16 +75,16 @@ class ExperimentResult {
   }
 
   Map<String, dynamic> toJson() => {
-        'experiment_id': experimentId,
-        'opportunity_id': opportunityId,
-        'merchant_id': merchantId,
-        'baseline': baseline,
-        'result': result,
-        'uplift_percent': upliftPercent,
-        'incremental_amount': incrementalAmount,
-        'status': status,
-        'is_synthetic': isSynthetic,
-      };
+    'experiment_id': experimentId,
+    'opportunity_id': opportunityId,
+    'merchant_id': merchantId,
+    'baseline': baseline,
+    'result': result,
+    'uplift_percent': upliftPercent,
+    'incremental_amount': incrementalAmount,
+    'status': status,
+    'is_synthetic': isSynthetic,
+  };
 }
 
 /// Backward compatibility typedef
