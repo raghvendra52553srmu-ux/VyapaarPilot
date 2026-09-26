@@ -4,9 +4,7 @@ compatibility_date = "2024-09-23"
 # Cloudflare Pages build output directory
 pages_build_output_dir = "frontend/build/web"
 
-# Cloudflare Workers static assets configuration (Wrangler v3.80+)
+# Cloudflare Workers static assets configuration
 [assets]
 directory = "frontend/build/web"
-binding = "ASSETS"
-html_handling = "single-page-application"
 not_found_handling = "single-page-application"
