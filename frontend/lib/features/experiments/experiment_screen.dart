@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../core/constants/app_colors.dart';
 import '../../models/experiment.dart';
 import '../../services/api/api_client.dart';
@@ -10,10 +11,7 @@ import '../../core/utils/currency_formatter.dart';
 class ExperimentScreen extends StatefulWidget {
   final String opportunityId;
 
-  const ExperimentScreen({
-    super.key,
-    required this.opportunityId,
-  });
+  const ExperimentScreen({super.key, required this.opportunityId});
 
   @override
   State<ExperimentScreen> createState() => _ExperimentScreenState();
@@ -51,16 +49,26 @@ class _ExperimentScreenState extends State<ExperimentScreen> {
               decoration: BoxDecoration(
                 color: AppColors.lightBlue,
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.secondaryBlue.withValues(alpha: 0.3)),
+                border: Border.all(
+                  color: AppColors.secondaryBlue.withValues(alpha: 0.3),
+                ),
               ),
               child: const Row(
                 children: [
-                  Icon(Icons.info_outline, color: AppColors.secondaryBlue, size: 20),
+                  Icon(
+                    Icons.info_outline,
+                    color: AppColors.secondaryBlue,
+                    size: 20,
+                  ),
                   SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       'HACKATHON DEMO MODE: All experiment results are simulated using synthetic transaction data.',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primary),
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primary,
+                      ),
                     ),
                   ),
                 ],
@@ -79,12 +87,19 @@ class _ExperimentScreenState extends State<ExperimentScreen> {
                     children: [
                       const Text(
                         'Targeted 3-Hour Promotion',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       const Text(
                         'Test a 10% discount during Tuesday 4:00 PM - 7:00 PM to evaluate footfall and sales uplift.',
-                        style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppColors.textSecondary,
+                        ),
                       ),
                       const SizedBox(height: 20),
                       PrimaryButton(
@@ -124,7 +139,11 @@ class _ExperimentScreenState extends State<ExperimentScreen> {
                       const SizedBox(height: 16),
                       const Text(
                         'Measured Sales Outcome',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
                       ),
                       const SizedBox(height: 20),
 
@@ -134,7 +153,9 @@ class _ExperimentScreenState extends State<ExperimentScreen> {
                         decoration: BoxDecoration(
                           color: const Color(0xFFF0FDF4),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
+                          border: Border.all(
+                            color: AppColors.success.withValues(alpha: 0.3),
+                          ),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -142,11 +163,21 @@ class _ExperimentScreenState extends State<ExperimentScreen> {
                             const Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Sales Uplift', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+                                Text(
+                                  'Sales Uplift',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
                                 SizedBox(height: 4),
                                 Text(
                                   '+25.0% Uplift',
-                                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.success),
+                                  style: TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.success,
+                                  ),
                                 ),
                               ],
                             ),
@@ -156,7 +187,11 @@ class _ExperimentScreenState extends State<ExperimentScreen> {
                                 color: AppColors.success,
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(Icons.trending_up, color: Colors.white, size: 24),
+                              child: const Icon(
+                                Icons.trending_up,
+                                color: Colors.white,
+                                size: 24,
+                              ),
                             ),
                           ],
                         ),
@@ -171,11 +206,23 @@ class _ExperimentScreenState extends State<ExperimentScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text('Baseline Sales', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                                const Text(
+                                  'Baseline Sales',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  CurrencyFormatter.formatRupee(_experiment!.baseline),
-                                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                                  CurrencyFormatter.formatRupee(
+                                    _experiment!.baseline,
+                                  ),
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textPrimary,
+                                  ),
                                 ),
                               ],
                             ),
@@ -184,11 +231,23 @@ class _ExperimentScreenState extends State<ExperimentScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text('Experiment Sales', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                                const Text(
+                                  'Experiment Sales',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  CurrencyFormatter.formatRupee(_experiment!.result),
-                                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.success),
+                                  CurrencyFormatter.formatRupee(
+                                    _experiment!.result,
+                                  ),
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.success,
+                                  ),
                                 ),
                               ],
                             ),

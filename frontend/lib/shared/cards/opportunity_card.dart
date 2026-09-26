@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../core/constants/app_colors.dart';
 import '../../models/opportunity.dart';
 import '../widgets/status_badge.dart';
@@ -35,7 +36,8 @@ class OpportunityCard extends StatelessWidget {
                     textColor: AppColors.primary,
                   ),
                   StatusBadge(
-                    label: '${opportunity.declinePercent.abs().toStringAsFixed(0)}% Slowdown',
+                    label:
+                        '${opportunity.declinePercent.abs().toStringAsFixed(0)}% Slowdown',
                     backgroundColor: AppColors.warning.withValues(alpha: 0.15),
                     textColor: AppColors.warning,
                   ),
@@ -53,7 +55,10 @@ class OpportunityCard extends StatelessWidget {
               const SizedBox(height: 6),
               Text(
                 'Sales decline observed across ${opportunity.weeksObserved} consecutive weeks.',
-                style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: AppColors.textSecondary,
+                ),
               ),
               const SizedBox(height: 12),
               const Row(
@@ -68,7 +73,11 @@ class OpportunityCard extends StatelessWidget {
                     ),
                   ),
                   SizedBox(width: 4),
-                  Icon(Icons.arrow_forward, size: 16, color: AppColors.secondaryBlue),
+                  Icon(
+                    Icons.arrow_forward,
+                    size: 16,
+                    color: AppColors.secondaryBlue,
+                  ),
                 ],
               ),
             ],

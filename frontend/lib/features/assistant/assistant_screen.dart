@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../core/constants/app_colors.dart';
 import '../../shared/widgets/app_scaffold.dart';
 
@@ -25,18 +26,29 @@ class AssistantScreen extends StatelessWidget {
                         color: AppColors.lightBlue,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.smart_toy_outlined, size: 48, color: AppColors.primary),
+                      child: const Icon(
+                        Icons.smart_toy_outlined,
+                        size: 48,
+                        color: AppColors.primary,
+                      ),
                     ),
                     const SizedBox(height: 16),
                     const Text(
                       'Ask VyapaarPilot Anything',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     const Text(
                       'Ask questions about your sales, footfall patterns, or store performance in Hindi, English, or Hinglish.',
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                   ],
                 ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../core/constants/app_colors.dart';
 import '../../models/ai_response.dart';
 import '../../services/api/api_client.dart';
@@ -11,13 +12,11 @@ import '../../core/utils/currency_formatter.dart';
 class OpportunityDetailScreen extends StatefulWidget {
   final String opportunityId;
 
-  const OpportunityDetailScreen({
-    super.key,
-    required this.opportunityId,
-  });
+  const OpportunityDetailScreen({super.key, required this.opportunityId});
 
   @override
-  State<OpportunityDetailScreen> createState() => _OpportunityDetailScreenState();
+  State<OpportunityDetailScreen> createState() =>
+      _OpportunityDetailScreenState();
 }
 
 class _OpportunityDetailScreenState extends State<OpportunityDetailScreen> {
@@ -78,7 +77,8 @@ class _OpportunityDetailScreenState extends State<OpportunityDetailScreen> {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            _recommendation?.title ?? 'Tuesday Evening Slowdown',
+                            _recommendation?.title ??
+                                'Tuesday Evening Slowdown',
                             style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
@@ -98,29 +98,55 @@ class _OpportunityDetailScreenState extends State<OpportunityDetailScreen> {
                               children: [
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      const Text('Historical Baseline', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                                      const Text(
+                                        'Historical Baseline',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: AppColors.textSecondary,
+                                        ),
+                                      ),
                                       const SizedBox(height: 4),
                                       Text(
                                         CurrencyFormatter.formatRupee(13800),
-                                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.textPrimary,
+                                        ),
                                       ),
                                     ],
                                   ),
                                 ),
-                                Container(height: 30, width: 1, color: Colors.grey.shade300),
+                                Container(
+                                  height: 30,
+                                  width: 1,
+                                  color: Colors.grey.shade300,
+                                ),
                                 Expanded(
                                   child: Padding(
                                     padding: const EdgeInsets.only(left: 14.0),
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
-                                        const Text('Recent Tuesday Sales', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                                        const Text(
+                                          'Recent Tuesday Sales',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: AppColors.textSecondary,
+                                          ),
+                                        ),
                                         const SizedBox(height: 4),
                                         Text(
                                           CurrencyFormatter.formatRupee(10488),
-                                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.error),
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.error,
+                                          ),
                                         ),
                                       ],
                                     ),
@@ -135,7 +161,11 @@ class _OpportunityDetailScreenState extends State<OpportunityDetailScreen> {
                           // AI Explanation Box
                           const Text(
                             'AI Explanation',
-                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.primary),
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
+                            ),
                           ),
                           const SizedBox(height: 6),
                           Container(
@@ -143,17 +173,29 @@ class _OpportunityDetailScreenState extends State<OpportunityDetailScreen> {
                             decoration: BoxDecoration(
                               color: AppColors.lightBlue,
                               borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: AppColors.secondaryBlue.withValues(alpha: 0.3)),
+                              border: Border.all(
+                                color: AppColors.secondaryBlue.withValues(
+                                  alpha: 0.3,
+                                ),
+                              ),
                             ),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Icon(Icons.auto_awesome, color: AppColors.secondaryBlue, size: 20),
+                                const Icon(
+                                  Icons.auto_awesome,
+                                  color: AppColors.secondaryBlue,
+                                  size: 20,
+                                ),
                                 const SizedBox(width: 10),
                                 Expanded(
                                   child: Text(
                                     _recommendation?.explanation ?? '',
-                                    style: const TextStyle(fontSize: 14, color: AppColors.textPrimary, height: 1.4),
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      color: AppColors.textPrimary,
+                                      height: 1.4,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -165,12 +207,20 @@ class _OpportunityDetailScreenState extends State<OpportunityDetailScreen> {
                           // Recommended Action
                           const Text(
                             'Recommended Action',
-                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.primary),
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
+                            ),
                           ),
                           const SizedBox(height: 6),
                           Text(
                             _recommendation?.recommendation ?? '',
-                            style: const TextStyle(fontSize: 14, color: AppColors.textPrimary, height: 1.4),
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: AppColors.textPrimary,
+                              height: 1.4,
+                            ),
                           ),
 
                           const SizedBox(height: 24),

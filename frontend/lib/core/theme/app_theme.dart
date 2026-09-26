@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+
 import '../constants/app_colors.dart';
+import '../constants/app_constants.dart';
 
 class AppTheme {
   AppTheme._();
@@ -23,27 +25,40 @@ class AppTheme {
         elevation: 0,
         centerTitle: false,
         titleTextStyle: TextStyle(
-          fontSize: 18,
+          fontSize: 18.0,
           fontWeight: FontWeight.w600,
           color: Colors.white,
         ),
       ),
-      cardTheme: CardThemeData(
+      cardTheme: const CardThemeData(
         color: AppColors.surface,
-        elevation: 1,
-        shadowColor: Colors.black12,
+        elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: const BorderSide(color: Color(0xFFE2E8F0), width: 1),
+          borderRadius: AppRadius.roundedMedium,
+          side: BorderSide(color: AppColors.border, width: 1.0),
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          shape: const RoundedRectangleBorder(
+            borderRadius: AppRadius.roundedSmall,
+          ),
+          textStyle: const TextStyle(
+            fontSize: 15.0,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
       textTheme: const TextTheme(
-        displayLarge: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-        titleLarge: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-        titleMedium: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.primary),
-        bodyLarge: TextStyle(fontSize: 14, fontWeight: FontWeight.normal, color: AppColors.textPrimary),
-        bodyMedium: TextStyle(fontSize: 14, fontWeight: FontWeight.normal, color: AppColors.textSecondary),
-        labelSmall: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+        displayLarge: AppTextStyles.display,
+        titleLarge: AppTextStyles.pageTitle,
+        titleMedium: AppTextStyles.sectionHeading,
+        bodyLarge: AppTextStyles.body,
+        bodyMedium: AppTextStyles.secondary,
+        labelSmall: AppTextStyles.badge,
       ),
     );
   }

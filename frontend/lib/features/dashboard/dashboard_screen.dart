@@ -1,121 +1,220 @@
 import 'package:flutter/material.dart';
-import '../../models/merchant_summary.dart';
-import '../../models/opportunity.dart';
-import '../../services/api/api_client.dart';
+
+import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_constants.dart';
+import '../../core/routing/app_router.dart';
 import '../../shared/widgets/app_scaffold.dart';
-import '../../shared/widgets/loading_state.dart';
+import '../../shared/widgets/metric_card.dart';
 import '../../shared/widgets/section_header.dart';
-import '../../shared/cards/metric_card.dart';
-import '../../shared/cards/opportunity_card.dart';
-import '../../shared/charts/trend_chart.dart';
-import '../../core/utils/currency_formatter.dart';
+import '../../shared/widgets/status_badge.dart';
 
-class DashboardScreen extends StatefulWidget {
+/// Phase 1 Dashboard Screen
+/// Establishes page structure, typography, metrics, and navigation CTA.
+class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
-
-  @override
-  State<DashboardScreen> createState() => _DashboardScreenState();
-}
-
-class _DashboardScreenState extends State<DashboardScreen> {
-  final ApiClient _apiClient = ApiClient();
-  MerchantSummary? _summary;
-  List<Opportunity> _opportunities = [];
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadDashboardData();
-  }
-
-  Future<void> _loadDashboardData() async {
-    setState(() => _isLoading = true);
-    final summary = await _apiClient.getMerchantSummary('M001');
-    final opportunities = await _apiClient.getMerchantOpportunities('M001');
-    if (mounted) {
-      setState(() {
-        _summary = summary;
-        _opportunities = opportunities;
-        _isLoading = false;
-      });
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      title: 'VyapaarPilot Dashboard',
+      title: 'VyapaarPilot',
       currentIndex: 0,
-      body: _isLoading
-          ? const LoadingState(message: 'Analyzing business data...')
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Merchant Summary Metrics Grid
-                  Row(
+      body: SingleChildScrollView(
+        padding: AppSpacing.screenPadding,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Merchant Identity Card
+            Card(
+              child: Padding(
+                padding: AppSpacing.cardPadding,
+                child: Row(
+                  children: [
+                    Container(
+                      width: 48.0,
+                      height: 48.0,
+                      decoration: const BoxDecoration(
+                        color: AppColors.lightBlue,
+                        borderRadius: AppRadius.roundedSmall,
+                      ),
+                      child: const Icon(
+                        Icons.store_mall_directory_outlined,
+                        color: AppColors.primary,
+                        size: 24.0,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Sharma General Store',
+                            style: AppTextStyles.pageTitle,
+                          ),
+                          SizedBox(height: AppSpacing.xs),
+                          Text(
+                            'Lucknow • Retail',
+                            style: AppTextStyles.secondary,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const StatusBadge(text: 'ACTIVE', type: BadgeType.success),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: AppSpacing.xl),
+
+            // Financial Metrics Overview
+            const SectionHeader(
+              title: 'Overview',
+              subtitle: 'Today\'s business snapshot',
+            ),
+            const SizedBox(height: AppSpacing.md),
+
+            // Responsive Metrics Grid
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final isWide = constraints.maxWidth >= AppBreakpoints.mobile;
+                if (isWide) {
+                  return const Row(
                     children: [
                       Expanded(
                         child: MetricCard(
-                          title: "Today's Sales",
-                          value: CurrencyFormatter.formatRupee(_summary?.todaySales ?? 18420),
-                          changePercent: _summary?.salesChangePercent ?? -12,
+                          label: "Today's Sales",
+                          value: '₹18,420',
+                          trend: -12.0,
                           subtitle: 'vs yesterday',
-                          icon: Icons.account_balance_wallet_outlined,
+                          icon: Icons.trending_up,
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      SizedBox(width: AppSpacing.md),
                       Expanded(
                         child: MetricCard(
-                          title: 'Transactions',
-                          value: '${_summary?.transactionCount ?? 73}',
+                          label: 'Transactions',
+                          value: '73',
                           subtitle: 'Completed today',
                           icon: Icons.receipt_long_outlined,
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      SizedBox(width: AppSpacing.md),
                       Expanded(
                         child: MetricCard(
-                          title: 'Avg Order Value',
-                          value: CurrencyFormatter.formatRupee(_summary?.averageTransaction ?? 252),
+                          label: 'Avg Order Value',
+                          value: '₹252',
                           subtitle: 'Per transaction',
                           icon: Icons.shopping_bag_outlined,
                         ),
                       ),
                     ],
-                  ),
+                  );
+                } else {
+                  return const Column(
+                    children: [
+                      MetricCard(
+                        label: "Today's Sales",
+                        value: '₹18,420',
+                        trend: -12.0,
+                        subtitle: 'vs yesterday',
+                        icon: Icons.trending_up,
+                      ),
+                      SizedBox(height: AppSpacing.md),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: MetricCard(
+                              label: 'Transactions',
+                              value: '73',
+                              subtitle: 'Completed today',
+                              icon: Icons.receipt_long_outlined,
+                            ),
+                          ),
+                          SizedBox(width: AppSpacing.md),
+                          Expanded(
+                            child: MetricCard(
+                              label: 'Avg Order',
+                              value: '₹252',
+                              subtitle: 'Per order',
+                              icon: Icons.shopping_bag_outlined,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  );
+                }
+              },
+            ),
 
-                  const SizedBox(height: 20),
+            const SizedBox(height: AppSpacing.xxl),
 
-                  // Sales Trend Chart
-                  const TrendChart(),
+            // Opportunities Section with Navigation CTA
+            const SectionHeader(
+              title: 'Business Signals',
+              subtitle: 'Detected anomalies requiring attention',
+            ),
+            const SizedBox(height: AppSpacing.md),
 
-                  const SizedBox(height: 24),
-
-                  // Growth Opportunities Section
-                  const SectionHeader(title: 'Growth Opportunities Identified'),
-                  const SizedBox(height: 12),
-
-                  if (_opportunities.isEmpty)
-                    const Text('No opportunities detected currently.')
-                  else
-                    ..._opportunities.map(
-                      (opp) => OpportunityCard(
-                        opportunity: opp,
-                        onTap: () {
-                          Navigator.pushNamed(
-                            context,
-                            '/opportunity',
-                            arguments: opp.opportunityId,
-                          );
+            Card(
+              child: Padding(
+                padding: AppSpacing.cardPadding,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        StatusBadge(
+                          text: 'Tuesday • 4 PM – 7 PM',
+                          type: BadgeType.info,
+                        ),
+                        StatusBadge(
+                          text: '24% below normal',
+                          type: BadgeType.warning,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    const Text(
+                      'Tuesday evening slowdown',
+                      style: AppTextStyles.sectionHeading,
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    const Text(
+                      'Recurring drop in sales observed over the past 4 weeks during evening peak hours.',
+                      style: AppTextStyles.secondary,
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton.icon(
+                        onPressed: () {
+                          Navigator.pushNamed(context, AppRouter.opportunity);
                         },
+                        icon: const Icon(
+                          Icons.arrow_forward,
+                          size: 16.0,
+                          color: AppColors.secondaryBlue,
+                        ),
+                        label: const Text(
+                          'View Opportunity',
+                          style: TextStyle(
+                            fontSize: 14.0,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.secondaryBlue,
+                          ),
+                        ),
                       ),
                     ),
-                ],
+                  ],
+                ),
               ),
             ),
+          ],
+        ),
+      ),
     );
   }
 }

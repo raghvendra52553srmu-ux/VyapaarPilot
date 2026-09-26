@@ -1,5 +1,7 @@
 import 'dart:convert';
+
 import 'package:http/http.dart' as http;
+
 import '../../core/constants/api_endpoints.dart';
 import '../../models/merchant_summary.dart';
 import '../../models/opportunity.dart';
@@ -13,12 +15,14 @@ class ApiClient {
 
   Future<MerchantSummary> getMerchantSummary(String merchantId) async {
     try {
-      final response = await _client.get(Uri.parse(ApiEndpoints.merchantSummary(merchantId)));
+      final response = await _client.get(
+        Uri.parse(ApiEndpoints.merchantSummary(merchantId)),
+      );
       if (response.statusCode == 200) {
         return MerchantSummary.fromJson(json.decode(response.body));
       }
     } catch (_) {}
-    
+
     // Fallback mock model for offline/scaffold preview
     return MerchantSummary(
       merchantId: merchantId,
@@ -32,7 +36,9 @@ class ApiClient {
 
   Future<List<Opportunity>> getMerchantOpportunities(String merchantId) async {
     try {
-      final response = await _client.get(Uri.parse(ApiEndpoints.merchantOpportunities(merchantId)));
+      final response = await _client.get(
+        Uri.parse(ApiEndpoints.merchantOpportunities(merchantId)),
+      );
       if (response.statusCode == 200) {
         final List list = json.decode(response.body);
         return list.map((e) => Opportunity.fromJson(e)).toList();
@@ -55,12 +61,18 @@ class ApiClient {
     ];
   }
 
-  Future<RecommendationResponse> getRecommendation(String opportunityId, {String language = 'hinglish'}) async {
+  Future<RecommendationResponse> getRecommendation(
+    String opportunityId, {
+    String language = 'hinglish',
+  }) async {
     try {
       final response = await _client.post(
         Uri.parse(ApiEndpoints.recommendAction(opportunityId)),
         headers: {'Content-Type': 'application/json'},
-        body: json.encode({'merchant_id': 'M001', 'preferred_language': language}),
+        body: json.encode({
+          'merchant_id': 'M001',
+          'preferred_language': language,
+        }),
       );
       if (response.statusCode == 200) {
         return RecommendationResponse.fromJson(json.decode(response.body));
@@ -81,7 +93,10 @@ class ApiClient {
       final response = await _client.post(
         Uri.parse(ApiEndpoints.experiments),
         headers: {'Content-Type': 'application/json'},
-        body: json.encode({'opportunity_id': opportunityId, 'merchant_id': 'M001'}),
+        body: json.encode({
+          'opportunity_id': opportunityId,
+          'merchant_id': 'M001',
+        }),
       );
       if (response.statusCode == 201 || response.statusCode == 200) {
         return Experiment.fromJson(json.decode(response.body));
