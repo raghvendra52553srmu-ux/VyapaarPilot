@@ -4,7 +4,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 from fastapi.testclient import TestClient
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from app.core.database import Base, get_db
 from app.models.merchant import Merchant
@@ -44,7 +44,7 @@ def init_test_database():
         db.add(c)
     db.commit()
 
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
 
     # Seed transactions with Tuesday slowdown and repeat customers
     for day_offset in range(14):

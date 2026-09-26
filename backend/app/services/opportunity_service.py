@@ -9,7 +9,7 @@ Discovers business patterns directly from transaction data:
 """
 
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Dict, Any, Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import func
@@ -86,7 +86,7 @@ class OpportunityService:
                     change_percent=item["change_percent"],
                     weeks_observed=item.get("weeks_observed", 4),
                     confidence=item.get("confidence", 0.85),
-                    created_at=datetime.utcnow()
+                    created_at=datetime.now(timezone.utc)
                 )
                 db.add(opp_record)
             else:

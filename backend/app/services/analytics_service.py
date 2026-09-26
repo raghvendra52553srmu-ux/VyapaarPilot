@@ -5,7 +5,7 @@ Processes real transaction rows from MySQL/SQLAlchemy to compute:
 - Trends (daily, weekly, monthly, Tuesday hourly baseline)
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Any, List
 from sqlalchemy.orm import Session
 from sqlalchemy import func, extract, and_
@@ -160,7 +160,7 @@ class AnalyticsService:
 
         latest_date = db.query(func.max(Transaction.timestamp)).filter(
             Transaction.merchant_id == merchant_id
-        ).scalar() or datetime.utcnow()
+        ).scalar() or datetime.now(timezone.utc)
 
         # 1. Daily trends (past 7 or 14 days)
         days_to_fetch = 14 if period == "14d" else 7

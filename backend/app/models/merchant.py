@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import Column, String, DateTime
 from sqlalchemy.orm import relationship
 from app.core.database import Base
@@ -10,7 +10,7 @@ class Merchant(Base):
     name = Column(String(100), nullable=False)
     business_type = Column(String(50), nullable=False)
     city = Column(String(50), nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     customers = relationship("Customer", back_populates="merchant", cascade="all, delete-orphan")
     transactions = relationship("Transaction", back_populates="merchant", cascade="all, delete-orphan")

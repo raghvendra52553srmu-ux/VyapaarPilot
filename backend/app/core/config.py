@@ -19,8 +19,18 @@ class Settings(BaseSettings):
     # Custom DATABASE_URL override (e.g. for SQLite dev/testing)
     DATABASE_URL: str = ""
 
-    # Gemini AI
+    # AI Provider Settings (gemini, groq, mock)
+    AI_PROVIDER: str = "groq"
     GEMINI_API_KEY: str = ""
+    GROQ_API_KEY: str = ""
+    GROQ_MODEL: str = "qwen/qwen3.8-27b"
+    GROQ_STT_MODEL: str = "whisper-large-v3-turbo"
+
+    # Voice / Multimodal Settings
+    STT_PROVIDER: str = "groq"
+    TTS_PROVIDER: str = "mock"
+    VOICE_MAX_UPLOAD_MB: float = 15.0
+    VOICE_DEFAULT_LANGUAGE: str = "hinglish"
 
     # CORS
     CORS_ORIGINS: Union[List[str], str] = ["http://localhost:5173", "http://localhost:3000", "*"]

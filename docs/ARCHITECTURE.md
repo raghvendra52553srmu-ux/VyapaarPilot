@@ -1,198 +1,82 @@
-# VyapaarPilot — System Architecture
+# VyapaarPilot — System Architecture (Multimodal AI Edition)
 
 ## 1. Architecture Principle
 
 The system separates:
 
-1. presentation
-2. API
-3. business logic
-4. analytics
-5. AI
-6. persistence
+1. presentation (Flutter Mobile UI)
+2. Multimodal API Gateway (REST & WebSocket)
+3. Voice Subsystem (STT & TTS abstractions)
+4. Unified Agent Brain & Tool Execution
+5. Deterministic Analytics Engine (source of numerical truth)
+6. Provider-Independent AI Layer (Gemini / Mock)
+7. Persistence (MySQL / SQLAlchemy)
 
-The LLM must NEVER have direct database access.
+The LLM must NEVER have direct database access. All financial numbers and business metrics originate from deterministic SQL and Python services.
 
 ---
 
-# 2. High-Level Architecture
+## 2. High-Level Architecture
 
-Flutter
+```
+Flutter Mobile App
     |
-    | HTTPS / REST / JSON
+    +---- Text Input (/api/ai/ask)
+    |
+    +---- Microphone Audio (/api/ai/voice)
+    |
+    +---- Realtime Audio/Text Stream (WS /api/ai/realtime/{merchant_id})
     v
-FastAPI
+FastAPI Multimodal Gateway
     |
-    +---- Analytics Engine
+    +---- Audio Validator & Normalizer
     |
-    +---- Opportunity Engine
-    |
-    +---- Experiment Engine
-    |
-    +---- AI Service
-    |
+    +---- Speech-To-Text (Gemini STT / Mock)
     v
-PostgreSQL
-
-AI Service
+Unified Agent Orchestrator (Single Brain)
     |
-    v
-Gemini API
-
-Synthetic Dataset
+    +---- Query Intent Classifier
     |
+    +---- Internal Agent Tools
+    |       |-- get_merchant_summary
+    |       |-- get_sales_trends
+    |       |-- get_customer_analytics
+    |       |-- get_opportunities
+    |       |-- get_recommendation
+    |       |-- create_experiment (requires confirmation)
+    |
+    +---- Grounded Context Builder (Structured facts)
+    |
+    +---- Provider-Independent AI Layer (Gemini / Mock)
+    |
+    +---- Anti-Hallucination & Grounding Validator
     v
-PostgreSQL
+Grounded Response + Structured Actions
+    |
+    +---- Text Response
+    |
+    +---- Optional Text-To-Speech (audio stream)
+    v
+Flutter Mobile App
+```
 
 ---
 
-# 3. Request Flow
+## 3. Request Flow
 
-Example:
+### A. Text Conversation
+Flutter sends `POST /api/ai/ask` with `message` and `merchant_id`. The orchestrator determines intent, queries MySQL analytics, formats structured facts, asks Gemini to explain in Hindi/Hinglish, and returns grounded answers with executable action cards.
 
-Merchant opens dashboard.
+### B. Voice Conversation
+Flutter records audio and uploads to `POST /api/ai/voice`. The audio is validated, transcribed by the STT provider into normalized text, processed through the **exact same agent orchestrator**, and returned with optional synthesized audio playback.
 
-Flutter
-    ↓
-GET /api/merchants/M001/summary
-    ↓
-FastAPI
-    ↓
-Analytics Service
-    ↓
-PostgreSQL
-    ↓
-JSON response
-    ↓
-Flutter
+### C. Action Confirmation & Execution
+When an assistant recommends creating a promotional experiment, it returns an action with `requires_confirmation: true`. Flutter presents a confirmation sheet. Upon user approval, Flutter calls `POST /api/ai/action/execute`, which validates parameters with Pydantic and executes the write action safely.
 
 ---
 
-# 4. Opportunity Flow
+## 4. Reliability & Fallback Principles
 
-Transactions
-    ↓
-Analytics
-    ↓
-Historical baseline
-    ↓
-Pattern detection
-    ↓
-Opportunity
-    ↓
-Structured business context
-    ↓
-Gemini
-    ↓
-Human-readable explanation
-    ↓
-Flutter
-
----
-
-# 5. AI Boundary
-
-The LLM receives structured context only.
-
-Example:
-
-{
-  "opportunity_type": "slow_period",
-  "day": "Tuesday",
-  "period": "16:00-19:00",
-  "decline_percent": 24,
-  "weeks_observed": 4,
-  "baseline_sales": 13800,
-  "recent_sales": 10488
-}
-
-The LLM must not query PostgreSQL.
-
-The LLM must not independently calculate business metrics.
-
-Python analytics is the source of truth for numbers.
-
----
-
-# 6. Experiment Flow
-
-Historical baseline
-    ↓
-Merchant approves action
-    ↓
-Experiment created
-    ↓
-Synthetic experiment result
-    ↓
-Uplift calculation
-    ↓
-Result displayed
-
-For hackathon MVP the experiment is simulated using synthetic data.
-
----
-
-# 7. Production Integration
-
-Hackathon:
-
-Synthetic data
-    ↓
-PostgreSQL
-    ↓
-VyapaarPilot
-
-Production concept:
-
-Authorized Paytm merchant data/API
-    ↓
-Secure ingestion layer
-    ↓
-VyapaarPilot analytics
-    ↓
-AI explanation
-    ↓
-Merchant
-
-No real Paytm integration is required for the hackathon MVP.
-
----
-
-# 8. Reliability Principles
-
-Analytics must work without the LLM.
-
-If Gemini fails:
-
-Analytics
-    ↓
-Deterministic recommendation template
-    ↓
-Flutter
-
-The application should not become unusable because of an AI API failure.
-
----
-
-# 9. Security Principles
-
-- no real personal data
-- no API keys in Git
-- environment variables for secrets
-- no raw DB access from LLM
-- validate API inputs
-- restrict database permissions
-- synthetic customer IDs only
-- no phone/email/address data
-
----
-
-# 10. Repository Architecture
-
-frontend/
-backend/
-database/
-data/
-docs/
-
-Each layer has a clear owner but remains inside one monorepo.
+1. **Deterministic Analytics**: Always functions independently of AI or third-party APIs.
+2. **AI Provider Fallback**: If Gemini is unreachable or unconfigured, the deterministic provider seamlessly formats pre-computed facts.
+3. **Voice Fallback**: If speech synthesis fails, the verified business response is returned as text with `audio_available = false`.

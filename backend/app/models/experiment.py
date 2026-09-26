@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import Column, String, Float, DateTime, ForeignKey, Index
 from sqlalchemy.orm import relationship
 from app.core.database import Base
@@ -13,8 +13,8 @@ class Experiment(Base):
     experiment_amount = Column(Float, nullable=False)
     uplift_percent = Column(Float, nullable=False)
     status = Column(String(20), default="completed")
-    started_at = Column(DateTime, default=datetime.utcnow)
-    completed_at = Column(DateTime, default=datetime.utcnow)
+    started_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    completed_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     merchant = relationship("Merchant", back_populates="experiments")
     opportunity = relationship("Opportunity", back_populates="experiments")
