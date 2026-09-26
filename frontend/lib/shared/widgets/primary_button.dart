@@ -35,6 +35,7 @@ class PrimaryButton extends StatelessWidget {
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
           shape: const RoundedRectangleBorder(
             borderRadius: AppRadius.roundedSmall,
           ),
@@ -58,11 +59,15 @@ class PrimaryButton extends StatelessWidget {
                     Icon(icon, size: 18.0),
                     const SizedBox(width: AppSpacing.sm),
                   ],
-                  Text(
-                    _buttonText,
-                    style: const TextStyle(
-                      fontSize: 15.0,
-                      fontWeight: FontWeight.w600,
+                  Flexible(
+                    child: Text(
+                      _buttonText,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 15.0,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ],

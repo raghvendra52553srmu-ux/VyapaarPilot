@@ -10,12 +10,14 @@ class AppScaffold extends StatelessWidget {
   final String title;
   final Widget body;
   final int currentIndex;
+  final bool showAssistantFab;
 
   const AppScaffold({
     super.key,
     required this.title,
     required this.body,
     this.currentIndex = 0,
+    this.showAssistantFab = true,
   });
 
   void _onNavigationTap(BuildContext context, int index) {
@@ -51,38 +53,59 @@ class AppScaffold extends StatelessWidget {
               )
             : null,
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: AppSpacing.lg),
-            child: Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.sm + 2,
-                  vertical: AppSpacing.xs,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.15),
-                  borderRadius: AppRadius.roundedLarge,
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.store, size: 16.0, color: Colors.white),
-                    SizedBox(width: AppSpacing.xs + 2),
-                    Text(
-                      'Sharma General Store',
-                      style: TextStyle(
-                        fontSize: 12.0,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
+          IconButton(
+            key: const Key('appbar_assistant_button'),
+            tooltip: 'Ask AI Assistant',
+            icon: const Icon(Icons.auto_awesome, color: Colors.white),
+            onPressed: () => Navigator.pushNamed(context, AppRouter.assistant),
+          ),
+          if (MediaQuery.sizeOf(context).width >= 450)
+            Padding(
+              padding: const EdgeInsets.only(right: AppSpacing.lg),
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.sm + 2,
+                    vertical: AppSpacing.xs,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    borderRadius: AppRadius.roundedLarge,
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.store, size: 16.0, color: Colors.white),
+                      SizedBox(width: AppSpacing.xs + 2),
+                      Text(
+                        'Sharma General Store',
+                        style: TextStyle(
+                          fontSize: 12.0,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
         ],
       ),
+      floatingActionButton: showAssistantFab
+          ? FloatingActionButton.extended(
+              key: const Key('open_assistant_button'),
+              onPressed: () =>
+                  Navigator.pushNamed(context, AppRouter.assistant),
+              backgroundColor: AppColors.secondaryBlue,
+              foregroundColor: Colors.white,
+              icon: const Icon(Icons.auto_awesome, size: 18),
+              label: const Text(
+                'Ask AI',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+              ),
+            )
+          : null,
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(

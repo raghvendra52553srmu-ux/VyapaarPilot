@@ -1,217 +1,180 @@
 import 'package:flutter/material.dart';
 
-import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/routing/app_router.dart';
+import '../../models/merchant_summary.dart';
+import '../../models/opportunity.dart';
+import '../../models/sales_trend.dart';
+import '../../services/api/api_service.dart';
 import '../../shared/widgets/app_scaffold.dart';
-import '../../shared/widgets/metric_card.dart';
+import '../../shared/widgets/empty_state.dart';
+import '../../shared/widgets/error_state.dart';
+import '../../shared/widgets/loading_state.dart';
 import '../../shared/widgets/section_header.dart';
-import '../../shared/widgets/status_badge.dart';
+import 'widgets/dashboard_header.dart';
+import 'widgets/opportunity_banner_card.dart';
+import 'widgets/primary_sales_card.dart';
+import 'widgets/sales_trend_card.dart';
+import 'widgets/secondary_metrics_row.dart';
 
-/// Phase 1 Dashboard Screen
-/// Establishes page structure, typography, metrics, and navigation CTA.
-class DashboardScreen extends StatelessWidget {
-  const DashboardScreen({super.key});
+/// Phase 2 Merchant Dashboard Screen
+/// Integrates real-like merchant business performance, sales trends, and detected opportunities.
+class DashboardScreen extends StatefulWidget {
+  final ApiService? apiService;
+
+  const DashboardScreen({super.key, this.apiService});
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  late final ApiService _apiService;
+
+  MerchantSummary? _summary;
+  SalesTrend? _salesTrend;
+  List<Opportunity> _opportunities = [];
+
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _apiService = widget.apiService ?? MockApiService();
+    _loadDashboardData();
+  }
+
+  Future<void> _loadDashboardData() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final summaryFuture = _apiService.getMerchantSummary('M001');
+      final trendFuture = _apiService.getSalesTrend('M001');
+      final opportunitiesFuture = _apiService.getOpportunities('M001');
+
+      final results = await Future.wait([
+        summaryFuture,
+        trendFuture,
+        opportunitiesFuture,
+      ]);
+
+      if (mounted) {
+        setState(() {
+          _summary = results[0] as MerchantSummary;
+          _salesTrend = results[1] as SalesTrend;
+          _opportunities = results[2] as List<Opportunity>;
+          _isLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = "We couldn't load your business insights.";
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
       title: 'VyapaarPilot',
       currentIndex: 0,
-      body: SingleChildScrollView(
+      body: _buildBody(),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_isLoading) {
+      return const LoadingState(message: 'Loading your business...');
+    }
+
+    if (_errorMessage != null) {
+      return ErrorState(message: _errorMessage!, onRetry: _loadDashboardData);
+    }
+
+    final summary = _summary;
+    if (summary == null) {
+      return const EmptyState(
+        title: 'No business data available',
+        subtitle: 'VyapaarPilot will keep watching your business.',
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadDashboardData,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: AppSpacing.screenPadding,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Merchant Identity Card
-            Card(
-              child: Padding(
-                padding: AppSpacing.cardPadding,
-                child: Row(
-                  children: [
-                    Container(
-                      width: 48.0,
-                      height: 48.0,
-                      decoration: const BoxDecoration(
-                        color: AppColors.lightBlue,
-                        borderRadius: AppRadius.roundedSmall,
-                      ),
-                      child: const Icon(
-                        Icons.store_mall_directory_outlined,
-                        color: AppColors.primary,
-                        size: 24.0,
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.md),
-                    const Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Sharma General Store',
-                            style: AppTextStyles.pageTitle,
-                          ),
-                          SizedBox(height: AppSpacing.xs),
-                          Text(
-                            'Lucknow • Retail',
-                            style: AppTextStyles.secondary,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const StatusBadge(text: 'ACTIVE', type: BadgeType.success),
-                  ],
-                ),
-              ),
+            // 1. Merchant Header
+            DashboardHeader(
+              greeting: 'Good morning',
+              merchantName: summary.merchantName,
+              locationAndCategory: '${summary.city} • ${summary.businessType}',
             ),
+            const SizedBox(height: AppSpacing.lg),
 
+            // 2. Primary Sales Card
+            PrimarySalesCard(
+              salesAmount: summary.todaySales,
+              changePercent: summary.salesChangePercent,
+              comparisonText: 'vs usual',
+            ),
+            const SizedBox(height: AppSpacing.md),
+
+            // 3. Secondary Metrics Row
+            SecondaryMetricsRow(
+              transactionCount: summary.transactionCount,
+              averageTransaction: summary.averageTransaction,
+            ),
             const SizedBox(height: AppSpacing.xl),
 
-            // Financial Metrics Overview
+            // 4. Compact Sales Trend
+            if (_salesTrend != null) ...[
+              SalesTrendCard(trend: _salesTrend!),
+              const SizedBox(height: AppSpacing.xl),
+            ],
+
+            // 5. Opportunity Section
             const SectionHeader(
-              title: 'Overview',
-              subtitle: 'Today\'s business snapshot',
+              title: 'OPPORTUNITY FOR YOU',
+              subtitle: 'Important pattern requiring your attention',
             ),
-            const SizedBox(height: AppSpacing.md),
+            const SizedBox(height: AppSpacing.sm),
 
-            // Responsive Metrics Grid
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final isWide = constraints.maxWidth >= AppBreakpoints.mobile;
-                if (isWide) {
-                  return const Row(
-                    children: [
-                      Expanded(
-                        child: MetricCard(
-                          label: "Today's Sales",
-                          value: '₹18,420',
-                          trend: -12.0,
-                          subtitle: 'vs yesterday',
-                          icon: Icons.trending_up,
-                        ),
-                      ),
-                      SizedBox(width: AppSpacing.md),
-                      Expanded(
-                        child: MetricCard(
-                          label: 'Transactions',
-                          value: '73',
-                          subtitle: 'Completed today',
-                          icon: Icons.receipt_long_outlined,
-                        ),
-                      ),
-                      SizedBox(width: AppSpacing.md),
-                      Expanded(
-                        child: MetricCard(
-                          label: 'Avg Order Value',
-                          value: '₹252',
-                          subtitle: 'Per transaction',
-                          icon: Icons.shopping_bag_outlined,
-                        ),
-                      ),
-                    ],
-                  );
-                } else {
-                  return const Column(
-                    children: [
-                      MetricCard(
-                        label: "Today's Sales",
-                        value: '₹18,420',
-                        trend: -12.0,
-                        subtitle: 'vs yesterday',
-                        icon: Icons.trending_up,
-                      ),
-                      SizedBox(height: AppSpacing.md),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: MetricCard(
-                              label: 'Transactions',
-                              value: '73',
-                              subtitle: 'Completed today',
-                              icon: Icons.receipt_long_outlined,
-                            ),
-                          ),
-                          SizedBox(width: AppSpacing.md),
-                          Expanded(
-                            child: MetricCard(
-                              label: 'Avg Order',
-                              value: '₹252',
-                              subtitle: 'Per order',
-                              icon: Icons.shopping_bag_outlined,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  );
-                }
-              },
-            ),
-
-            const SizedBox(height: AppSpacing.xxl),
-
-            // Opportunities Section with Navigation CTA
-            const SectionHeader(
-              title: 'Business Signals',
-              subtitle: 'Detected anomalies requiring attention',
-            ),
-            const SizedBox(height: AppSpacing.md),
-
-            Card(
-              child: Padding(
-                padding: AppSpacing.cardPadding,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        StatusBadge(
-                          text: 'Tuesday • 4 PM – 7 PM',
-                          type: BadgeType.info,
-                        ),
-                        StatusBadge(
-                          text: '24% below normal',
-                          type: BadgeType.warning,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    const Text(
-                      'Tuesday evening slowdown',
-                      style: AppTextStyles.sectionHeading,
-                    ),
-                    const SizedBox(height: AppSpacing.xs),
-                    const Text(
-                      'Recurring drop in sales observed over the past 4 weeks during evening peak hours.',
-                      style: AppTextStyles.secondary,
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton.icon(
-                        onPressed: () {
-                          Navigator.pushNamed(context, AppRouter.opportunity);
-                        },
-                        icon: const Icon(
-                          Icons.arrow_forward,
-                          size: 16.0,
-                          color: AppColors.secondaryBlue,
-                        ),
-                        label: const Text(
-                          'View Opportunity',
-                          style: TextStyle(
-                            fontSize: 14.0,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.secondaryBlue,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+            if (_opportunities.isEmpty)
+              const Padding(
+                padding: EdgeInsets.only(top: AppSpacing.sm),
+                child: EmptyState(
+                  title: 'No new opportunities found.',
+                  subtitle: 'VyapaarPilot will keep watching your business.',
+                ),
+              )
+            else
+              ..._opportunities.map(
+                (opportunity) => Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                  child: OpportunityBannerCard(
+                    opportunity: opportunity,
+                    onViewInsight: () {
+                      Navigator.pushNamed(
+                        context,
+                        AppRouter.opportunity,
+                        arguments: opportunity,
+                      );
+                    },
+                  ),
                 ),
               ),
-            ),
+            const SizedBox(height: AppSpacing.xxl),
           ],
         ),
       ),

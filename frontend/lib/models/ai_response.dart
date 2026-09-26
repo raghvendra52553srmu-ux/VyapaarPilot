@@ -26,3 +26,24 @@ class RecommendationResponse {
     );
   }
 }
+
+class AiAskResponse {
+  final String answer;
+  final List<String> suggestedActions;
+
+  const AiAskResponse({
+    required this.answer,
+    this.suggestedActions = const [],
+  });
+
+  factory AiAskResponse.fromJson(Map<String, dynamic> json) {
+    return AiAskResponse(
+      answer: json['answer'] ?? '',
+      suggestedActions: (json['suggested_actions'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          const [],
+    );
+  }
+}
+
