@@ -57,9 +57,7 @@ class Settings(BaseSettings):
         if self.DATABASE_URL:
             url = self.DATABASE_URL
             if url.startswith("postgres://"):
-                url = url.replace("postgres://", "postgresql+psycopg2://", 1)
-            elif url.startswith("postgresql://") and not url.startswith("postgresql+"):
-                url = url.replace("postgresql://", "postgresql+psycopg2://", 1)
+                url = url.replace("postgres://", "postgresql://", 1)
             return url
         
         # If DB_HOST is explicitly configured to a remote MySQL host, use PyMySQL
