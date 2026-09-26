@@ -31,8 +31,13 @@ echo "Resolving Flutter dependencies..."
 flutter pub get
 
 # 4. Determine API Base URL
-TARGET_API_URL="${API_BASE_URL:-https://vyapaarpilot.onrender.com}"
+TARGET_API_URL="${API_BASE_URL:-https://vyapaarpilot.onrender.com/api}"
+# If TARGET_API_URL does not end in /api, append it
+if [[ "$TARGET_API_URL" != */api ]]; then
+  TARGET_API_URL="${TARGET_API_URL%/}/api"
+fi
 echo "Configuring API Base URL: $TARGET_API_URL"
+
 
 # 5. Build Flutter Web release
 echo "Building Flutter Web release..."
