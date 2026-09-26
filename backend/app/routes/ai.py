@@ -121,11 +121,12 @@ def stream_audio(audio_id: str):
     if not cached:
         raise HTTPException(status_code=404, detail="Audio resource expired or not found.")
 
+    ext = "mp3" if "mpeg" in (cached.mime_type or "") else "wav"
     return Response(
         content=cached.audio_bytes,
         media_type=cached.mime_type,
         headers={
-            "Content-Disposition": f"inline; filename={audio_id}.wav",
+            "Content-Disposition": f"inline; filename={audio_id}.{ext}",
             "Cache-Control": "public, max-age=3600"
         }
     )

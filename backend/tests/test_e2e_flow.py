@@ -156,8 +156,8 @@ def test_e2e_04_voice_conversation_lifecycle(client: TestClient):
     audio_endpoint = audio_url.replace("http://testserver", "")
     stream_res = client.get(audio_endpoint)
     assert stream_res.status_code == 200
-    assert "audio/wav" in stream_res.headers.get("content-type", "")
-    assert len(stream_res.content) > 44  # Valid WAV header + PCM samples
+    assert stream_res.headers.get("content-type", "") in ["audio/wav", "audio/mpeg"]
+    assert len(stream_res.content) > 44
 
 # ============================================================================
 # 5. Safe Action Execution Guardrail (Confirmation flow)

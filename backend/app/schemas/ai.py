@@ -40,6 +40,7 @@ class AudioMeta(BaseModel):
     audio_id: Optional[str] = None
     mime_type: Optional[str] = "audio/wav"
     duration_sec: Optional[float] = None
+    provider: Optional[str] = "assemblyai"
     error_message: Optional[str] = None
 
 class UnifiedConversationResponse(BaseModel):

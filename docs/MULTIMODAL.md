@@ -56,12 +56,15 @@ Crucially:
 - `MockDeterministicProvider`: High-speed offline fallback guaranteeing 100% accurate grounded responses in tests or without API keys.
 
 ### Speech-To-Text (`backend/app/voice/stt/`)
+- `AssemblyAISTTProvider`: Primary STT provider (`provider="assemblyai_stt"`). Uploads audio to AssemblyAI (`/v2/upload`) and polls `/v2/transcript` with automated language detection for Hindi, Hinglish, and Indian English.
 - `GroqSTTProvider`: Sub-second speech-to-text powered by `whisper-large-v3-turbo` running on Groq LPUs.
-- `GeminiSTTProvider`: Multimodal audio transcription.
+- `GeminiSTTProvider`: Multimodal audio transcription via Gemini.
 - `MockSTTProvider`: Offline test transcription for synthetic demo phrases.
 
 ### Text-To-Speech (`backend/app/voice/tts/`)
-- `MockTTSProvider`: Synthesizes 16-bit 16kHz WAV streams stored in memory and streamed via `/api/ai/voice/audio/{audio_id}`.
+- `AssemblyAITTSProvider`: Primary TTS provider (`provider="assemblyai"`). Generates studio-grade natural voice streams (`hi-IN-MadhurNeural`, `en-IN-PrabhatNeural`) with automatic caching and streaming via `/api/ai/voice/audio/{audio_id}`.
+- `EdgeTTSProvider`: Standalone neural speech synthesis provider.
+- `MockTTSProvider`: Synthesizes 16-bit 16kHz WAV streams stored in memory for testing without cloud network requests.
 
 ---
 

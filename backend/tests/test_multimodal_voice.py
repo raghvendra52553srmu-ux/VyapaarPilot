@@ -53,7 +53,7 @@ def test_voice_endpoint_valid_audio(client):
     audio_url = res["audio"]["audio_url"]
     audio_res = client.get(audio_url)
     assert audio_res.status_code == 200
-    assert audio_res.headers["content-type"] == "audio/wav"
+    assert audio_res.headers["content-type"] in ["audio/wav", "audio/mpeg"]
     assert len(audio_res.content) > 100
 
 def test_voice_endpoint_empty_audio(client):

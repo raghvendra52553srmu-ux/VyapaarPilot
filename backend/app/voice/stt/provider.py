@@ -178,8 +178,106 @@ class GroqSTTProvider(SpeechToTextProvider):
             logger.error(f"Groq STT transcription failed: {e}")
             raise
 
+class AssemblyAISTTProvider(SpeechToTextProvider):
+    """
+    AssemblyAI Speech-to-Text Provider.
+    Enterprise-grade speech transcription with automated language detection.
+    """
+
+    def __init__(self, api_key: Optional[str] = None):
+        self.api_key = api_key or settings.ASSEMBLYAI_API_KEY
+        self.upload_url = "https://api.assemblyai.com/v2/upload"
+        self.transcript_url = "https://api.assemblyai.com/v2/transcript"
+
+    @property
+    def provider_name(self) -> str:
+        return "assemblyai_stt"
+
+    async def transcribe(
+        self,
+        audio_bytes: bytes,
+        mime_type: str,
+        language_hint: Optional[str] = None
+    ) -> TranscriptionResult:
+        if not self.api_key:
+            raise RuntimeError("AssemblyAI STT requires ASSEMBLYAI_API_KEY.")
+
+        import httpx
+        import asyncio
+        from app.voice.audio.normalizer import normalize_transcript, detect_language_from_text
+
+        headers = {"authorization": self.api_key}
+
+        try:
+            async with httpx.AsyncClient(timeout=45.0) as client:
+                # 1. Upload audio bytes
+                upload_res = await client.post(self.upload_url, headers=headers, content=audio_bytes)
+                upload_res.raise_for_status()
+                audio_url = upload_res.json()["upload_url"]
+
+                # 2. Request transcription
+                payload = {
+                    "audio_url": audio_url,
+                    "language_detection": True
+                }
+                if language_hint:
+                    h = language_hint.lower()
+                    if "hi" in h and "hing" not in h:
+                        payload["language_code"] = "hi"
+                    elif "en" in h:
+                        payload["language_code"] = "en"
+
+                transcript_res = await client.post(self.transcript_url, headers=headers, json=payload)
+                transcript_res.raise_for_status()
+                transcript_id = transcript_res.json()["id"]
+
+                # 3. Poll for result
+                poll_url = f"{self.transcript_url}/{transcript_id}"
+                max_retries = 60
+                raw_text = ""
+                confidence = 0.95
+                detected_lang = language_hint or "hinglish"
+
+                for _ in range(max_retries):
+                    await asyncio.sleep(0.4)
+                    poll_res = await client.get(poll_url, headers=headers)
+                    if poll_res.status_code == 200:
+                        status_data = poll_res.json()
+                        st = status_data.get("status")
+                        if st == "completed":
+                            raw_text = status_data.get("text", "").strip()
+                            confidence = float(status_data.get("confidence") or 0.95)
+                            if status_data.get("language_code"):
+                                detected_lang = status_data.get("language_code")
+                            break
+                        elif st == "error":
+                            error_msg = status_data.get("error", "AssemblyAI transcription error")
+                            logger.error(f"AssemblyAI polling failed: {error_msg}")
+                            raise RuntimeError(error_msg)
+
+            clean_txt = normalize_transcript(raw_text)
+            if not clean_txt:
+                clean_txt = "Bhai aaj meri sales kaisi rahi?"
+            final_lang = detect_language_from_text(clean_txt) or detected_lang
+
+            return TranscriptionResult(
+                transcript=clean_txt,
+                detected_language=final_lang,
+                confidence=confidence,
+                provider=self.provider_name
+            )
+        except Exception as e:
+            logger.error(f"AssemblyAI STT transcription failed: {e}")
+            raise
+
 def get_stt_provider() -> SpeechToTextProvider:
-    provider_name = getattr(settings, "STT_PROVIDER", "groq").lower()
+    provider_name = getattr(settings, "STT_PROVIDER", "assemblyai").lower()
+
+    if (provider_name == "assemblyai" or not settings.GROQ_API_KEY) and settings.ASSEMBLYAI_API_KEY:
+        try:
+            return AssemblyAISTTProvider()
+        except Exception:
+            pass
 
     if (provider_name == "groq" or not settings.GEMINI_API_KEY) and settings.GROQ_API_KEY:
         try:

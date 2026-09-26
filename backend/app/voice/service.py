@@ -94,7 +94,8 @@ class VoiceService:
                     audio_url=f"/api/ai/voice/audio/{synth_res.audio_id}",
                     audio_id=synth_res.audio_id,
                     mime_type=synth_res.mime_type,
-                    duration_sec=synth_res.duration_sec
+                    duration_sec=synth_res.duration_sec,
+                    provider=synth_res.provider
                 )
             except Exception as e:
                 logger.warning(f"TTS synthesis failed, falling back to text: {e}")
