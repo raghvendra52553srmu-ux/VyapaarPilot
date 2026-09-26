@@ -33,7 +33,7 @@ class Settings(BaseSettings):
     VOICE_DEFAULT_LANGUAGE: str = "hinglish"
 
     # CORS
-    CORS_ORIGINS: Union[List[str], str] = ["http://localhost:5173", "http://localhost:3000", "*"]
+    CORS_ORIGINS: Union[List[str], str] = ["http://localhost:5173", "http://localhost:3000", "http://localhost:8080", "*"]
 
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
