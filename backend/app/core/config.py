@@ -16,8 +16,12 @@ class Settings(BaseSettings):
     DB_PASSWORD: str = ""
     DB_NAME: str = "vyapaarpilot1"
 
-    # Custom DATABASE_URL override (e.g. for SQLite dev/testing)
-    DATABASE_URL: str = ""
+    # Custom DATABASE_URL override (defaults to Render PostgreSQL cluster)
+    DATABASE_URL: str = os.getenv(
+        "DATABASE_URL",
+        "postgresql://vyapaaradmin:0rvYGkLvnblVe70ap5ADcR62t7FUnkb3@dpg-darpugrbc2fs7382tr20-a.singapore-postgres.render.com:5432/vyapaarpilot1"
+    )
+
 
     # AI Provider Settings (gemini, groq, mock)
     AI_PROVIDER: str = "groq"
