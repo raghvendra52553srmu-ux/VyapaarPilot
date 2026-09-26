@@ -40,10 +40,11 @@ echo "Configuring API Base URL: $TARGET_API_URL"
 
 
 # 5. Build Flutter Web release
-echo "Building Flutter Web release..."
+echo "Building Flutter Web release in strict API mode (NO mock data fallback)..."
 flutter build web --release \
   --dart-define=API_BASE_URL="$TARGET_API_URL" \
-  --dart-define=DATA_MODE=auto
+  --dart-define=DATA_MODE=api
+
 
 # 6. Configure Cloudflare SPA routing and 404 fallback
 echo "Generating Cloudflare SPA routing configuration..."

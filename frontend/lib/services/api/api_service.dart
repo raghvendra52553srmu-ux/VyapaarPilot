@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 
@@ -442,8 +443,8 @@ class MockApiService implements ApiService {
 /// Ensures 100% test reliability and instant live integration when FastAPI is running.
 class HttpApiService implements ApiService {
   /// Controls data source mode:
-  /// - DataMode.auto (default): Uses live Render backend, falls back gracefully in offline unit tests.
-  /// - DataMode.api: Strict live API mode. Rethrows all network/server errors.
+  /// - DataMode.api: Strict live API mode. Rethrows all network/server errors. (Used in Cloudflare release build)
+  /// - DataMode.auto (default): Uses live backend, falls back gracefully in offline unit test environments.
   /// - DataMode.mock: Offline preview mode with synthetic demo data.
   static DataMode dataMode = const String.fromEnvironment('DATA_MODE') == 'api'
       ? DataMode.api
@@ -452,6 +453,7 @@ class HttpApiService implements ApiService {
           : DataMode.auto);
   static bool get isApiMode => dataMode == DataMode.api;
   static bool get isMockMode => dataMode == DataMode.mock;
+
 
   final http.Client _client;
   final MockApiService _fallback;
@@ -638,6 +640,42 @@ class HttpApiService implements ApiService {
     );
   }
 
+  static List<int> _ensureWav(List<int> bytes) {
+    if (bytes.length >= 4 &&
+        bytes[0] == 0x52 && // 'R'
+        bytes[1] == 0x49 && // 'I'
+        bytes[2] == 0x46 && // 'F'
+        bytes[3] == 0x46) {
+      return bytes;
+    }
+    const sampleRate = 16000;
+    const channels = 1;
+    const bitsPerSample = 16;
+    const byteRate = sampleRate * channels * bitsPerSample ~/ 8;
+    const blockAlign = channels * bitsPerSample ~/ 8;
+
+
+    final dataSize = bytes.length;
+    final chunkSize = 36 + dataSize;
+
+    final header = ByteData(44);
+    header.setUint32(0, 0x52494646, Endian.big); // "RIFF"
+    header.setUint32(4, chunkSize, Endian.little);
+    header.setUint32(8, 0x57415645, Endian.big); // "WAVE"
+    header.setUint32(12, 0x666D7420, Endian.big); // "fmt "
+    header.setUint32(16, 16, Endian.little); // Subchunk1Size
+    header.setUint16(20, 1, Endian.little); // AudioFormat (PCM)
+    header.setUint16(22, channels, Endian.little);
+    header.setUint32(24, sampleRate, Endian.little);
+    header.setUint32(28, byteRate, Endian.little);
+    header.setUint16(32, blockAlign, Endian.little);
+    header.setUint16(34, bitsPerSample, Endian.little);
+    header.setUint32(36, 0x64617461, Endian.big); // "data"
+    header.setUint32(40, dataSize, Endian.little);
+
+    return [...header.buffer.asUint8List(), ...bytes];
+  }
+
   @override
   Future<AiAskResponse> sendVoice(
     String merchantId,
@@ -649,11 +687,12 @@ class HttpApiService implements ApiService {
   }) async {
     if (dataMode == DataMode.mock) return _fallback.sendVoice(merchantId, audioBytes, language: language, conversationId: conversationId, mimeType: mimeType, mockTranscript: mockTranscript);
     try {
+      final validWavBytes = _ensureWav(audioBytes);
       final request =
           http.MultipartRequest('POST', Uri.parse(ApiEndpoints.aiVoice))
             ..fields['merchant_id'] = merchantId
             ..fields['language'] = language
-            ..fields['response_mode'] = 'text';
+            ..fields['response_mode'] = 'both';
 
       if (conversationId != null) {
         request.fields['conversation_id'] = conversationId;
@@ -662,7 +701,7 @@ class HttpApiService implements ApiService {
       request.files.add(
         http.MultipartFile.fromBytes(
           'audio',
-          audioBytes,
+          validWavBytes,
           filename: 'voice_input.wav',
         ),
       );
@@ -677,6 +716,7 @@ class HttpApiService implements ApiService {
     } catch (e) {
       if (dataMode == DataMode.api) rethrow;
     }
+
 
     return _fallback.sendVoice(
       merchantId,

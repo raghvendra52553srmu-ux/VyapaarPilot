@@ -6,7 +6,9 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/routing/app_router.dart';
 import '../../core/utils/currency_formatter.dart';
+import '../../core/constants/api_endpoints.dart';
 import '../../services/api/api_service.dart';
+import '../../services/audio/web_audio_player.dart';
 import '../../shared/widgets/app_scaffold.dart';
 import 'models/chat_message.dart';
 import 'widgets/audio_wave_indicator.dart';
@@ -233,6 +235,7 @@ class _AssistantScreenState extends State<AssistantScreen> {
   void _toggleMic() async {
     if (_currentState == AssistantState.listening) {
       _autoListenTimer?.cancel();
+      WebAudioHelper.stopListening();
       // Transition from Listening to Transcribing
       setState(() {
         _currentState = AssistantState.transcribing;
@@ -291,7 +294,15 @@ class _AssistantScreenState extends State<AssistantScreen> {
             );
           });
           _scrollToBottom();
+          WebAudioHelper.speakText('Tuesday 4 to 7 PM experiment start karun?', _selectedLanguage);
         } else {
+          final audioUrl = voiceResp.audio?.audioUrl;
+          final fullAudioUrl = (audioUrl != null && audioUrl.isNotEmpty)
+              ? (audioUrl.startsWith('http')
+                  ? audioUrl
+                  : '${ApiEndpoints.baseUrl.replaceAll('/api', '')}$audioUrl')
+              : null;
+
           setState(() {
             _currentState = AssistantState.speaking;
             _messages.add(
@@ -302,10 +313,18 @@ class _AssistantScreenState extends State<AssistantScreen> {
                 text: voiceResp.answer,
                 isUser: false,
                 timestamp: DateTime.now(),
+                audioUrl: fullAudioUrl,
               ),
             );
           });
           _scrollToBottom();
+
+          // Play real audio via TTS: prefer backend synthesized audio, fallback to Web Speech TTS
+          if (fullAudioUrl != null) {
+            WebAudioHelper.playAudioUrl(fullAudioUrl);
+          } else {
+            WebAudioHelper.speakText(voiceResp.answer, _selectedLanguage);
+          }
 
           _stateTimer?.cancel();
           _stateTimer = Timer(const Duration(seconds: 4), () {
@@ -338,15 +357,38 @@ class _AssistantScreenState extends State<AssistantScreen> {
         _currentState = AssistantState.listening;
       });
 
-      // Auto-commit voice turn after 2 seconds if not manually stopped
+      if (WebAudioHelper.isSpeechRecognitionSupported) {
+        WebAudioHelper.startListening(
+          language: _selectedLanguage,
+          onResult: (transcript) {
+            if (transcript.trim().isNotEmpty && mounted) {
+              _submitMessage(transcript);
+            }
+          },
+
+          onError: () {
+            if (mounted && _currentState == AssistantState.listening) {
+              _toggleMic();
+            }
+          },
+          onEnd: () {
+            if (mounted && _currentState == AssistantState.listening) {
+              _toggleMic();
+            }
+          },
+        );
+      }
+
+      // Auto-commit voice turn after 3 seconds if not manually stopped
       _autoListenTimer?.cancel();
-      _autoListenTimer = Timer(const Duration(milliseconds: 2200), () {
+      _autoListenTimer = Timer(const Duration(milliseconds: 3000), () {
         if (mounted && _currentState == AssistantState.listening) {
           _toggleMic();
         }
       });
     }
   }
+
 
   void _onConfirmAction(ActionProposal proposal) async {
     setState(() {
